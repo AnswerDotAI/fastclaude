@@ -1,0 +1,14 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "fastclaude"
+  site-url: "https://AnswerDotAI.github.io/fastclaude"
+  description: "Small completions-style Python interface backed by the Claude CLI"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/fastclaude"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown
