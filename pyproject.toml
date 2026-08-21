@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastclaude"
+dynamic = ["version"]
+description = "Small completions-style Python interface backed by the Claude CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "Jeremy Howard", email = "github@jhoward.fastmail.fm"}]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = ["python-fastllm>=0.0.42"]
+
+[project.optional-dependencies]
+dev = [
+  "fastship",
+  "build",
+  "twine",
+]
+
+[project.urls]
+Repository = "https://github.com/AnswerDotAI/fastclaude"
+
+[tool.setuptools.dynamic]
+version = { attr = "fastclaude.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["fastclaude"]
