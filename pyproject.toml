@@ -17,6 +17,9 @@ classifiers = [
 ]
 dependencies = ["python-fastllm>=0.0.42"]
 
+[project.optional-dependencies]
+dev = ['claude-agent-sdk']
+
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/fastclaude"
 Documentation = "https://AnswerDotAI.github.io/fastclaude/"
@@ -31,3 +34,8 @@ version = {attr = "fastclaude.__version__"}
 include = ["fastclaude"]
 
 [tool.nbdev]
+allowed_metadata_keys = ['solveit']
+allowed_cell_metadata_keys = ['solveit_ai']
+
+[tool.chkstyle]
+skip_paths = ["_modidx.py"]
