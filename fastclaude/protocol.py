@@ -13,6 +13,7 @@ __all__ = ['read_msgs', 'tool_spec', 'mk_tools', 'tool_content', 'mcp_dispatch',
 import asyncio, json, os
 from fastcore.utils import *
 from fastcore.funccall import get_schema, call_func, call_func_async
+from fastllm.types import wrap_typed
 
 # %% ../nbs/01_protocol.ipynb #81bd6eea
 async def read_msgs(
@@ -45,9 +46,9 @@ def mk_tools(
 def tool_content(
     v, # A callable tool's return value
 ):
-    "MCP `content` list for `v`: text for a str, empty for None, readable JSON otherwise"
+    "MCP `content` list for `v`: text for a str (`wrap_typed`), empty for None, readable JSON otherwise"
     if v is None: return []
-    if not isinstance(v, str): v = json.dumps(v, ensure_ascii=False, default=str)
+    v = wrap_typed(v) if isinstance(v, str) else json.dumps(v, ensure_ascii=False, default=str)
     return [dict(type='text', text=v)]
 
 # %% ../nbs/01_protocol.ipynb #6fea8305

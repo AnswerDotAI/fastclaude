@@ -17,6 +17,7 @@ from fastcore.utils import *
 from fastcore.meta import delegates
 from fastcore.xdg import xdg_cache_home
 from fastllm.anthropic import denorm_msgs, norm_parts
+from fastllm.types import unwrap_typed
 from aidialog.msg_parts import Msg, Text, ToolUse, ToolResult, Media
 from .session import *
 from .protocol import *
@@ -132,7 +133,7 @@ def _track(self:ClaudeRun, m):
         self.messages.append(Msg('assistant', parts))
     elif t=='user' and isinstance(c, list) and c and all(b.get('type')=='tool_result' for b in c):
         self.messages.append(Msg('tool', [ToolResult(id=b.get('tool_use_id'), name=self._names.get(b.get('tool_use_id')),
-            text=_flat(b.get('content',''))) for b in c]))
+            text=unwrap_typed(_flat(b.get('content','')))) for b in c]))
     elif t=='result': self.result = m
 
 # %% ../nbs/02_core.ipynb #ea5dbde9
