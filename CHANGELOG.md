@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.2
+
+### New Features
+
+- Return control of the tool loop to the caller: advertise tool schemas, defer tool calls via PreToolUse hook, and continue from tool results ([#3](https://github.com/AnswerDotAI/fastclaude/issues/3))
+
+
 ## 0.0.1
 
 ### New Features
