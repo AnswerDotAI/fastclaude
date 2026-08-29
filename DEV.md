@@ -8,6 +8,12 @@ This document records the design agreed before implementation. The initial packa
 
 **Progress (2026-08-22, later):** `fastclaude.protocol` (NDJSON framing, the MCP-shaped bridge on `fastcore.funccall`, `ClaudeProto` control routing with per-request cancellable handlers) and `fastclaude.core` (`astream`/`ClaudeRun`: compile, spawn, trace accumulation from full events, native interrupt, shielded close/drain/escalate/remove cleanup) are implemented, with offline scripted-peer lessons plus live-validated runs: plain completion, in-process tool loop, interrupt mid-tool (Claude sends `control_cancel_request`, terminal_reason `aborted_tools`), and stateless continuation with signatures replayed. The default cwd is an XDG cache work dir (`xdg_cache_home()/'fastclaude'`), replacing `~/.fastllm-claude-agent`. `fastllm-claude-code` is ported: history and chat-ns callables pass to `astream` (via `ClaudeCodeCallback` injecting `ns`), all tool calls stream server-marked with real results merged in, each turn's history is reshaped to the external-loop message shape, and the Agent SDK and llmsurgery dependencies are gone. A host closing the stream interrupts the run and cancels the in-flight callable, verified live. `tool_reply` was not moved: the bridge grew its own `tool_content` (callable returns, not Anthropic tool_result blocks); llmsurgery's deferred machinery is now uncalled outside llmsurgery and can be deleted when convenient. Not yet done: ipyai/solveit adoption (step 5), a fixture refresh carrying visible thinking, and the deferred-tools future option remains unimplemented by design.
 
+**Progress (2026-08-28):** the tool model reversed to the external completions loop, agreed after a few days of the in-process design: fastclaude was not a true completions interface (it rejected `ToolResult`-ended histories and never stopped at a `tool_use`), and every completions-model consumer needed adapter machinery to hide that. Tools are now schemas only (`mk_tools`; an annotated callable contributes its signature and never runs). A `PreToolUse` defer hook, registered through the raw `initialize` control request and answered by `ClaudeProto` as `hook_callback` requests, ends the turn at the `tool_use`. A history ending in a `ToolResult` continues via the forged deferral: `mk_deferred` (ported from `llmsurgery.ant` into `fastclaude.session`) marks the pending call, `hold_result` queues the known result, and the bridge serves it when Claude re-invokes on a no-prompt resume; with several trailing results, all but the last file as ordinary records. Both paths validated live against CLI 2.1.x with no Agent SDK env. `fastllm-claude-code` shrank to a pass-through: `ClaudeCodeCallback`, `_reshape_hist`, `_splice`, `_tr_part`, and the ns injection are deleted, tool calls stream unmarked so FastLLM's own loop executes them, and the whole loop (including a zero-argument call) is verified live through `AsyncChat`. The typed-marker pair (`wrap_typed`/`unwrap_typed`) stays in fastllm as independently useful, but fastclaude no longer calls it: results never cross back to the host, so the `FullResponse` wire loss cannot occur. The "Possible future option: deferred historical tool results" section below is that mechanism, now implemented and no longer optional; sections above describing in-process callable execution record the superseded design.
+
+**Progress (2026-08-28, later):** the Agent SDK dependency is gone from the workspace outside llmsurgery. `claude_cmd` grew the run-shaping options the SDK's `_build_command` maps (`append_system`, `setting_sources`, `mcp_config` for external servers, `max_turns`, `max_budget`, `permission_mode`, `thinking`, `effort`); `ClaudeRun` now delegates its command options to `claude_cmd` and gained `env=` and `allowed=`; and `fork_session` in `fastclaude.session` reimplements the SDK's native session fork (fresh uuids, rebuilt parent chain skipping progress records, `forkedFrom` backpointers, `custom-title` record, `up_to` cut), verified key-for-key against the checked-in fork fixture the SDK produced. The ant fixture generators and llmdojo's `capture_dojo` now run on `astream`, both verified live: a fresh source capture reproduced every fixture property, and a sonnet capture attempt played a clean dojo round end to end. Both projects dropped their `claude-agent-sdk` dev extras, so `00_session` tests in a bare venv. Separately, llmdojo's suite had been red since aidialog's prompt-cell format change: the checked-in `dojo_data/dojo_template.ipynb` was old-form markdown, and migrating it with aidialog's `conv_old_prompts` restored all three notebooks.
+
+**Progress (2026-08-28, later still):** llmsurgery's duplicate of the deferred-tools machinery is deleted (`tool_reply`, `hold_result`, `defer_tools`, `mk_deferred`, `no_prompt`, `QueryError`, `aquery_events`, and the whole "Claude as a chat API" section): fastclaude owns that mechanism, and no consumer imported llmsurgery's copy. `run_locked_agent` ported onto `astream`, so llmsurgery's Agent SDK import is gone too and the SDK now has no user anywhere in the workspace. fastclaude's native fork was renamed `fork_session` (matching the CLI flag and the SDK verb), and llmsurgery's curating fork, which had held the plain name `fork_sess`, became `fork_curated`.
+
 The important decisions are:
 
 - Each request is independent. `fastclaude` never owns conversation state across calls.
@@ -562,6 +568,21 @@ Thus normal transcript records do not recreate Claude's pending internal tool st
 ### Interrupt
 
 A live native interrupt was acknowledged and produced the aborted partial message plus `terminal_reason: "aborted_streaming"` described above. This validates the request-scoped interrupt design.
+
+### Isolated headless spawn (2026-08-27)
+
+The working recipe for spawning `claude -p` with no user configuration loaded, external MCP tools only, and subscription auth. The prompt argument goes before the flags (`--allowedTools` consumes following arguments):
+
+```bash
+ANTHROPIC_AUTH_TOKEN=$CLAUDE_OAUTH_TOKEN claude -p "<prompt>" --bare \
+  --mcp-config '{"mcpServers":{"x":{"type":"http","url":"<server url>"}}}' \
+  --strict-mcp-config --allowedTools "mcp__x__<tool>,..."
+```
+
+Findings:
+
+- Without isolation the spawned claude loads the user's hooks, skills, and CLAUDE.md, and acts on them before the task. `--bare` prevents this; `--setting-sources ""` is the lighter variant that keeps the stored login.
+- `--bare` does not use the stored login, and does not read `CLAUDE_CODE_OAUTH_TOKEN`. It does read `ANTHROPIC_AUTH_TOKEN`, sent as the Bearer header, which is what a subscription OAuth token (from `claude setup-token`) needs.
 
 ## Possible future option: deferred historical tool results
 

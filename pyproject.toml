@@ -17,9 +17,6 @@ classifiers = [
 ]
 dependencies = ["python-fastllm>=0.0.42"]
 
-[project.optional-dependencies]
-dev = ['claude-agent-sdk']
-
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/fastclaude"
 Documentation = "https://AnswerDotAI.github.io/fastclaude/"

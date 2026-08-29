@@ -1,6 +1,6 @@
 """`astream` and `ClaudeRun`: stateless completions through the installed Claude Code
 
-`astream(msgs, ...)` returns a `ClaudeRun`: one stateless completion through the installed `claude`, using its login and subscription. The complete history (as `aidialog.msg_parts.Msg`s, ending with a real user prompt) is compiled into a native transcript via `fastclaude.session` under a fresh random session id and resumed; callable tools are served in-process via `fastclaude.protocol`; iteration yields the raw stream-json events; `.messages` accumulates the canonical trace (signatures intact, tool names unqualified) and `.result` the terminal result, so the next request can replay everything. `run.interrupt()` ends a turn natively, and closing the stream interrupts, drains, escalates to terminate/kill, and removes the transcript. Runs default to an isolated XDG cache work dir, so no real project's sessions or settings are touched; pass `cwd=` for project context, and `native_tools=` to enable built-ins such as `'WebSearch'`.
+`astream(msgs, ...)` returns a `ClaudeRun`: one stateless completion through the installed `claude`, using its login and subscription. The complete history (as `aidialog.msg_parts.Msg`s) is compiled into a native transcript via `fastclaude.session` under a fresh random session id and resumed. The caller owns the tool loop: tools are schemas, a run whose reply calls one ends at the `tool_use`, and a history ending in a `ToolResult` is continued by deferral - the pending call is marked in the transcript, the known result is held, and Claude collects it on resume via `fastclaude.protocol`. Iteration yields the raw stream-json events; `.messages` accumulates the canonical trace (signatures intact, tool names unqualified) and `.result` the terminal result, so the next request can replay everything. `run.interrupt()` ends a turn natively, and closing the stream interrupts, drains, escalates to terminate/kill, and removes the transcript. Runs default to an isolated XDG cache work dir, so no real project's sessions or settings are touched; pass `cwd=` for project context, and `native_tools=` to enable built-ins such as `'WebSearch'`.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/core.html.md"""
 
@@ -8,7 +8,7 @@ Docs: https://AnswerDotAI.github.io/fastclaude/core.html.md"""
 
 # %% auto #0
 __all__ = ['MCP_SERVER', 'MCP_PREFIX', 'SERVER_TOOLS', 'work_dir', 'compile_msgs', 'claude_cmd', 'claude_env', 'ClaudeRun',
-           'astream']
+           'astream', 'unqual']
 
 # %% ../nbs/02_core.ipynb #326ece78
 import asyncio, json, os, shutil, uuid
@@ -17,7 +17,6 @@ from fastcore.utils import *
 from fastcore.meta import delegates
 from fastcore.xdg import xdg_cache_home
 from fastllm.anthropic import denorm_msgs, norm_parts
-from fastllm.types import unwrap_typed
 from aidialog.msg_parts import Msg, Text, ToolUse, ToolResult, Media
 from .session import *
 from .protocol import *
@@ -35,16 +34,21 @@ def work_dir():
 
 # %% ../nbs/02_core.ipynb #7feb4c5d
 def compile_msgs(
-    msgs, # Complete history as `Msg`s, ending with a real user prompt
+    msgs, # Complete history as `Msg`s, ending with a user prompt or with the tool results Claude asked for
 ):
-    "`(history, prompt)`: qualified wire messages for the transcript, and the live turn's content"
+    "`(history, prompt, deferred)`: wire messages to file, the live turn's content (None for a continuation), and the pending `(tool_use, tool_result)` pair"
     msgs = listify(msgs)
     if not msgs: raise ValueError('empty message history')
-    last = msgs[-1]
-    if last.role!='user' or not any(isinstance(p, (Text,Media)) for p in last.content):
-        raise ValueError('history must end with a user message containing a real prompt, not only tool results')
-    den = denorm_msgs(msgs)
-    return prefix_tools(den[:-1], MCP_PREFIX, skip=SERVER_TOOLS), den[-1]['content']
+    den = prefix_tools(denorm_msgs(msgs), MCP_PREFIX, skip=SERVER_TOOLS)
+    lc = den[-1]['content']
+    if msgs[-1].role=='user' and any(isinstance(p, (Text,Media)) for p in msgs[-1].content): return den[:-1], lc, None
+    if den[-1]['role']=='user' and isinstance(lc, list) and lc and all(b.get('type')=='tool_result' for b in lc):
+        tus = {b['id']: b for m in den for b in (m['content'] if isinstance(m['content'], list) else []) if b.get('type')=='tool_use'}
+        pend = [tus.get(b['tool_use_id']) for b in lc]
+        if None in pend: raise ValueError('a trailing tool result answers no tool_use in the history')
+        hist = den[:-1] + ([dict(role='user', content=lc[:-1])] if len(lc)>1 else [])
+        return hist, None, (pend[-1], lc[-1])
+    raise ValueError('history must end with a user prompt or tool results')
 
 # %% ../nbs/02_core.ipynb #0c3b7a6a
 def claude_cmd(
@@ -54,6 +58,14 @@ def claude_cmd(
     tools=False, # Offer the private SDK MCP server?
     native_tools=(), # Built-in Claude Code tools to enable, e.g. 'WebSearch'
     allowed=(), # `--allowedTools` entries, e.g. qualified callable names
+    append_system=None, # Text appended to Claude Code's own system prompt, which stays
+    setting_sources=None, # Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)
+    mcp_config=None, # Extra MCP server entries, e.g. `dict(clikernel=dict(type='stdio', command=...))`
+    max_turns=None, # Bound on agent turns; None is unbounded
+    max_budget=None, # Max USD for the run; None is unbounded
+    permission_mode=None, # e.g. 'bypassPermissions'; None keeps the CLI default
+    thinking=None, # 'adaptive' or 'disabled'; None keeps the CLI default
+    effort=None, # Thinking effort: 'low', 'medium', or 'high'
     claude_path=None, # Explicit claude executable; found on PATH if None
 ):
     "argv for one headless stream-json claude run"
@@ -61,11 +73,17 @@ def claude_cmd(
         '--input-format','stream-json', '--verbose', '--include-partial-messages']
     if model: c += ['--model', model]
     if system is not None: c += ['--system-prompt', system]
+    if append_system: c += ['--append-system-prompt', append_system]
     if resume: c += [f'--resume={resume}']
-    if tools: c += ['--mcp-config', json.dumps(dict(mcpServers={MCP_SERVER: dict(type='sdk', name=MCP_SERVER)}))]
+    servers = dict(mcp_config or {})
+    if tools: servers[MCP_SERVER] = dict(type='sdk', name=MCP_SERVER)
+    if servers: c += ['--mcp-config', json.dumps(dict(mcpServers=servers))]
     c.append('--strict-mcp-config')
     c += ['--tools', ','.join(native_tools)]
     if allowed: c += ['--allowedTools', ','.join(allowed)]
+    if setting_sources is not None: c.append(f"--setting-sources={','.join(setting_sources)}")
+    for f,v in (('--max-turns',max_turns), ('--max-budget-usd',max_budget), ('--permission-mode',permission_mode), ('--thinking',thinking), ('--effort',effort)):
+        if v is not None: c += [f, str(v)]
     return c
 
 def claude_env():
@@ -77,18 +95,21 @@ def claude_env():
 # %% ../nbs/02_core.ipynb #ad501dc1
 class ClaudeRun:
     "One stateless completion: a fresh transcript, one claude process, streamed events, a canonical trace"
+    @delegates(claude_cmd, but=['model','resume','tools','native_tools','allowed'])
     def __init__(self,
-        msgs, # Complete history as `Msg`s, ending with a real user prompt
+        msgs, # Complete history as `Msg`s, ending with a user prompt or the tool results Claude asked for
         model='sonnet', # Model alias or full name
-        system=None, # System prompt; None keeps Claude Code's own
-        tools=None, # Callable tools, in either `tool_spec` form
+        tools=None, # Tool schemas to advertise, in either `tool_spec` form; the caller executes
         cwd=None, # Project directory for the run; the isolated `work_dir()` if None
         native_tools=(), # Built-in Claude Code tools to enable, e.g. 'WebSearch'
-        claude_path=None, # Explicit claude executable; found on PATH if None
+        allowed=(), # Extra `--allowedTools` entries beyond the advertised schemas
+        env=None, # Extra child environment variables, merged over `claude_env()`
+        **kwargs, # Passed to `claude_cmd`, e.g. `system`, `setting_sources`, `mcp_config`
     ):
-        store_attr()
+        store_attr('msgs,model,tools,cwd,native_tools,allowed,env')
+        self.cmd_kwargs = kwargs
         self.messages,self.result,self.proc,self.proto = [],None,None,None
-        self._names,self._closed,self._spath = {},False,None
+        self._names,self._closed,self._spath,self._deferred = {},False,None,None
 
     def __aiter__(self):
         if not hasattr(self, '_it'): self._it = self._run()
@@ -102,24 +123,33 @@ def astream(msgs, **kwargs):
 # %% ../nbs/02_core.ipynb #e5bc11c4
 @patch
 async def _spawn(self:ClaudeRun):
-    "Compile and file the history, then start claude resuming it; returns the live turn's content"
-    self.cwd = Path(self.cwd) if self.cwd else work_dir()
-    hist,prompt = compile_msgs(self.msgs)
-    sid = str(uuid.uuid4())
-    if hist:
-        save_sess(msgs2recs(hist, key=sid, cwd=self.cwd), sid, self.cwd)
+    "Compile and file the history, then start claude resuming it; returns the live turn's content (None for a continuation)"
+    self.cwd = Path(self.cwd).expanduser() if self.cwd else work_dir()
+    hist,prompt,deferred = compile_msgs(self.msgs)
+    sid,held = str(uuid.uuid4()),{}
+    recs = msgs2recs(hist, key=sid, cwd=self.cwd)
+    if deferred:
+        tu,tr = deferred
+        recs.append(mk_deferred(tu, cwd=self.cwd))
+        hold_result(held, tu['name'], tu['input'], tr.get('content',''), tr.get('is_error', False))
+        self._deferred = tu['id']
+    if recs:
+        save_sess(recs, sid, self.cwd)
         self._spath = sess_file(sid, self.cwd)
-    schemas,_ = mk_tools(self.tools or [])
-    allowed = [MCP_PREFIX+s['name'] for s in schemas] + list(self.native_tools)
-    argv = claude_cmd(self.model, resume=sid if hist else None, system=self.system, tools=bool(schemas),
-        native_tools=self.native_tools, allowed=allowed, claude_path=self.claude_path)
+    schemas = mk_tools(self.tools or [])
+    allowed = [MCP_PREFIX+s['name'] for s in schemas] + list(self.native_tools) + list(self.allowed)
+    argv = claude_cmd(self.model, resume=sid if recs else None, tools=bool(schemas),
+        native_tools=self.native_tools, allowed=allowed, **self.cmd_kwargs)
     self.proc = await asyncio.create_subprocess_exec(*argv, stdin=asyncio.subprocess.PIPE,
-        stdout=asyncio.subprocess.PIPE, limit=2**25, cwd=self.cwd, env=claude_env())
-    self.proto = ClaudeProto(self.proc, tools=self.tools, server=MCP_SERVER)
+        stdout=asyncio.subprocess.PIPE, limit=2**25, cwd=self.cwd, env=dict(claude_env(), **(self.env or {})))
+    self.proto = ClaudeProto(self.proc, tools=self.tools, held=held, server=MCP_SERVER)
     return prompt
 
 # %% ../nbs/02_core.ipynb #8d5f8fe6
-def _unq(nm): return nm[len(MCP_PREFIX):] if nm and nm.startswith(MCP_PREFIX) else nm
+def unqual(nm):
+    "The bare tool name for a possibly `mcp__fastclaude__`-qualified `nm`"
+    return nm[len(MCP_PREFIX):] if nm and nm.startswith(MCP_PREFIX) else nm
+
 def _flat(c): return c if isinstance(c, str) else '\n'.join(b.get('text','') for b in c if b.get('type')=='text')
 
 @patch
@@ -129,19 +159,20 @@ def _track(self:ClaudeRun, m):
     if t=='assistant' and isinstance(c, list):
         parts = norm_parts(m['message'])
         for p in parts:
-            if isinstance(p, ToolUse): p.name = self._names[p.id] = _unq(p.name)
+            if isinstance(p, ToolUse): p.name = self._names[p.id] = unqual(p.name)
         self.messages.append(Msg('assistant', parts))
     elif t=='user' and isinstance(c, list) and c and all(b.get('type')=='tool_result' for b in c):
+        if any(b.get('tool_use_id')==self._deferred for b in c): return
         self.messages.append(Msg('tool', [ToolResult(id=b.get('tool_use_id'), name=self._names.get(b.get('tool_use_id')),
-            text=unwrap_typed(_flat(b.get('content','')))) for b in c]))
+            text=_flat(b.get('content',''))) for b in c]))
     elif t=='result': self.result = m
 
 # %% ../nbs/02_core.ipynb #ea5dbde9
 @patch
 async def _kick(self:ClaudeRun, prompt):
-    "Handshake, then the one live user turn"
+    "Handshake, then the live user turn; a continuation sends none"
     await self.proto.initialize()
-    await self.proto.send(dict(type='user', message=dict(role='user', content=prompt)))
+    if prompt is not None: await self.proto.send(dict(type='user', message=dict(role='user', content=prompt)))
 
 @patch
 async def _run(self:ClaudeRun):

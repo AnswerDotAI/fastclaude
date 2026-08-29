@@ -18,8 +18,8 @@ Docs: https://AnswerDotAI.github.io/fastclaude/session.html.md"""
 
 # %% auto #0
 __all__ = ['SESSIONS', 'ant_data', 'CC_VERSION', 'sess_dir', 'cur_sess', 'uniq_path', 'sess_file', 'load_recs', 'sess_thread',
-           'rec_txt', 'sess_id', 'canon', 'stable_uuid', 'mk_rec', 'save_sess', 'append_sess', 'msgs2recs', 'msgs2sess',
-           'mk_tu', 'mk_tr', 'tool_turn', 'load_sess', 'prefix_tools']
+           'rec_txt', 'canon', 'stable_uuid', 'mk_rec', 'save_sess', 'append_sess', 'msgs2recs', 'msgs2sess', 'sess_id',
+           'fork_session', 'mk_tu', 'mk_tr', 'tool_turn', 'mk_deferred', 'load_sess', 'prefix_tools']
 
 # %% ../nbs/00_session.ipynb #4ca88f98
 import json, os, re, uuid
@@ -102,11 +102,6 @@ def rec_txt(
 ):
     "Every readable string in `r`'s message content, joined, for finding records by text"
     return '\n'.join(_txts(obj2dict(r).get('message', {}).get('content', ''), skip=('type','id','tool_use_id','signature')))
-
-# %% ../nbs/00_session.ipynb #a891d415
-def sess_id(recs):
-    "The session id in transcript records `recs`"
-    return first(r.get('sessionId') for r in recs if r.get('sessionId'))
 
 # %% ../nbs/00_session.ipynb #44743a5a
 CC_VERSION = '2.1.223'
@@ -226,6 +221,55 @@ def msgs2sess(
     sid = stable_uuid(f'{key}:{canon(msgs)}:{canon(extra or [])}')
     return save_sess(msgs2recs(msgs, key=sid, cwd=cwd, **kwargs)+list(extra or []), sid, cwd)
 
+# %% ../nbs/00_session.ipynb #a891d415
+def sess_id(recs):
+    "The session id in transcript records `recs`"
+    return first(r.get('sessionId') for r in recs if r.get('sessionId'))
+
+# %% ../nbs/00_session.ipynb #5cab1ea0
+def _fork_title(recs):
+    "The source's last custom or AI title, else its first user prompt line"
+    for k in ('customTitle','aiTitle'):
+        if t := last((r[k] for r in recs if r.get(k)), None): return t
+    return first((rec_txt(r).partition('\n')[0] for r in recs if r.get('type')=='user'), 'Forked session')
+
+def fork_session(
+    sid=None, # Session id or unique prefix to fork; the current session if None
+    cwd=None, # Project directory; the current directory if None
+    up_to=None, # Record uuid to cut at (inclusive); the whole transcript if None
+    title=None, # Fork title; the source's `_fork_title` plus ' (fork)' if None
+):
+    "Fork a session natively: fresh session id and record uuids, rebuilt parent chain; returns the new sid"
+    recs = load_recs(sess_file(sid, cwd))
+    ssid = sess_id(recs)
+    keep = [r for r in recs if r.get('type') in ('user','assistant','attachment','system','progress')
+        and isinstance(r.get('uuid'), str) and not r.get('isSidechain')]
+    if up_to:
+        idx = first((i for i,r in enumerate(keep) if r['uuid']==up_to), None)
+        if idx is None: raise ValueError(f'uuid not in transcript: {up_to}')
+        keep = keep[:idx+1]
+    ids = {r['uuid']: str(uuid.uuid4()) for r in keep}
+    by_id = {r['uuid']: r for r in keep}
+    fsid,now = str(uuid.uuid4()),_now()
+    writable = [r for r in keep if r.get('type')!='progress']
+    out = []
+    for i,r in enumerate(writable):
+        pid = r.get('parentUuid')
+        while pid and by_id.get(pid, {}).get('type')=='progress': pid = by_id[pid].get('parentUuid')
+        f = {**r, 'uuid': ids[r['uuid']], 'parentUuid': ids.get(pid), 'sessionId': fsid, 'isSidechain': False}
+        f['timestamp'] = now if i==len(writable)-1 else r.get('timestamp', now)
+        f['logicalParentUuid'] = ids.get(lp, lp) if (lp := r.get('logicalParentUuid')) else None
+        f['forkedFrom'] = dict(sessionId=ssid, messageUuid=r['uuid'])
+        for k in ('teamName','agentName','slug','sourceToolAssistantUUID'): f.pop(k, None)
+        out.append(f)
+    reps = [x for r in recs if r.get('type')=='content-replacement' and r.get('sessionId')==ssid for x in (r.get('replacements') or [])]
+    if reps: out.append(dict(type='content-replacement', sessionId=fsid, replacements=reps, uuid=str(uuid.uuid4()), timestamp=now))
+    out.append(dict(type='custom-title', sessionId=fsid, customTitle=title or f'{_fork_title(recs)} (fork)', uuid=str(uuid.uuid4()), timestamp=now))
+    p = sess_dir(cwd)/f'{fsid}.jsonl'
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(''.join(json.dumps(obj2dict(r), separators=(',',':'))+'\n' for r in out))
+    return fsid
+
 # %% ../nbs/00_session.ipynb #05433084
 def mk_tu(
     name, # Tool name, as the transcript records it
@@ -254,6 +298,19 @@ def tool_turn(
     tu = mk_tu(name, input)
     return [mk_rec('user', prompt, **kwargs), mk_rec('assistant', [tu], **kwargs),
         mk_rec('user', [mk_tr(tu, output)], **kwargs), mk_rec('assistant', [dict(type='text', text=answer)], **kwargs)]
+
+# %% ../nbs/00_session.ipynb #2c65fe8c
+def mk_deferred(
+    tu, # The pending `tool_use` block dict
+    cwd='.', # Project directory recorded in the envelope
+    uid=None, # Record uuid; random if None
+    ts='2026-01-01T00:00:00.000Z', # Timestamp recorded in the envelope
+):
+    "A `hook_deferred_tool` attachment record marking `tu` as deferred, ready for `save_sess`"
+    return dict(type='attachment', uuid=uid or str(uuid.uuid4()), parentUuid=None, sessionId=None, isSidechain=False,
+        timestamp=ts, userType='external', cwd=str(Path(cwd).expanduser().resolve()), version=CC_VERSION, gitBranch='HEAD',
+        attachment=dict(type='hook_deferred_tool', toolUseID=tu['id'], toolName=tu['name'], toolInput=tu.get('input', {}),
+            hookName='settings', hookEvent='PreToolUse', permissionMode='default'))
 
 # %% ../nbs/00_session.ipynb #b8610c76
 def load_sess(
