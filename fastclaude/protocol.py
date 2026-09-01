@@ -77,6 +77,9 @@ class ToolBroker:
     @property
     def pending(self): return [c for c in self.calls if not c.future.done()]
 
+    @property
+    def batch_complete(self): return bool(self.batch) and all(s.call and s.result is not None for s in self.batch)
+
     async def wait(self):
         "Wait until the pending MCP calls change"
         await self.changed.wait()
@@ -103,7 +106,7 @@ async def call(self:ToolBroker, name, arguments):
     "Register one MCP call and wait for its result"
     call = _McpCall(name, arguments)
     self.calls.append(call)
-    if self.batch: self._attach(call)
+    if self.batch and not self.batch_complete: self._attach(call)
     self.changed.set()
     try: return await call.future
     finally:
@@ -114,7 +117,7 @@ async def call(self:ToolBroker, name, arguments):
 @patch
 def begin(self:ToolBroker, uses):
     "Install the complete streamed tool-use batch"
-    if self.batch and not all(s.call and s.result is not None for s in self.batch): raise RuntimeError('previous tool batch is incomplete')
+    if self.batch and not self.batch_complete: raise RuntimeError('previous tool batch is incomplete')
     self.batch = [_ToolSlot(u) for u in uses]
     for call in self.pending: self._attach(call)
     return self.batch
