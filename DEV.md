@@ -14,15 +14,17 @@ This document records the design agreed before implementation. The initial packa
 
 **Progress (2026-08-28, later still):** llmsurgery's duplicate of the deferred-tools machinery is deleted (`tool_reply`, `hold_result`, `defer_tools`, `mk_deferred`, `no_prompt`, `QueryError`, `aquery_events`, and the whole "Claude as a chat API" section): fastclaude owns that mechanism, and no consumer imported llmsurgery's copy. `run_locked_agent` ported onto `astream`, so llmsurgery's Agent SDK import is gone too and the SDK now has no user anywhere in the workspace. fastclaude's native fork was renamed `fork_session` (matching the CLI flag and the SDK verb), and llmsurgery's curating fork, which had held the plain name `fork_sess`, became `fork_curated`.
 
+**Progress (2026-08-30):** the undocumented `PreToolUse` deferral and transcript-forged continuation are replaced by Claude CLI's ordinary paused MCP flow. `ToolBroker` leaves each `tools/call` control request awaiting a result; streamed `ToolUse`s plus `message_stop` establish the complete parallel batch even though the CLI submits those MCP calls serially. `ClaudeRun` yields at that boundary, `resume` accepts the complete `ToolResult` batch, and iteration continues in the same Claude process. `fastllm-claude-code` retains paused runs behind opaque response ids, exposes explicit cancellation, and resumes them from FastLLM's existing client-owned parallel tool loop; FastLLM now advertises continuation as a transport capability rather than special-casing OpenAI. Focused Sonnet 5 runs verified both the complete batch and same-process continuation. The older deferred-tool and in-process-loop sections below remain as design history and are superseded by this status.
+
 The important decisions are:
 
-- Each request is independent. `fastclaude` never owns conversation state across calls.
+- Each top-level request is independent, while caller-owned tool rounds remain in one live `ClaudeRun`.
 - Callers pass complete history as `aidialog.msg_parts.Msg` objects, so they can edit, hide, rewind, or replace any earlier message.
 - History is compiled into a real Claude Code JSONL transcript and resumed. It is not rendered into XML or flattened into a prompt.
-- The last input message must be a genuine user prompt. A history ending only in `ToolResult` is not supported initially.
-- Claude owns the live agent/tool loop. Python only supplies tool definitions and executes callbacks when Claude requests them.
-- Public tools are ordinary Python callables. MCP is only a small private wire-protocol implementation required by Claude Code; `fastclaude` will not depend on the `mcp` package or expose MCP concepts in its API.
-- The low-level Claude transcript codec currently in `llmsurgery.ant` moves into `fastclaude`. `llmsurgery` then depends on `fastclaude`, not the reverse.
+- The input history ends in a genuine user prompt; tool results continue the paused run through `resume`, not a new history replay.
+- The caller owns tool execution and supplies every result in the streamed batch before Claude continues.
+- Public tools are schemas (annotated callables contribute their schema but are not invoked). MCP remains a small private wire-protocol implementation, with no `mcp` package dependency or MCP concepts in the public API.
+- `fastclaude.session` owns the low-level Claude transcript codec; `llmsurgery` depends on `fastclaude`, not the reverse.
 - Interrupts use Claude Code's native control request before falling back to process termination.
 
 ## Purpose
