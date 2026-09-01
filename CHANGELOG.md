@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.3
+
+### New Features
+
+- Replace deferred-tool hack with paused MCP tool calls: runs now pause at a complete tool batch and resume in the same Claude process ([#4](https://github.com/AnswerDotAI/fastclaude/issues/4))
+
+
 ## 0.0.2
 
 ### New Features
