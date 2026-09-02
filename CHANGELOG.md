@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.4
+
+### New Features
+
+- Continue a tool round by deferral rather than a paused process ([#6](https://github.com/AnswerDotAI/fastclaude/pull/6)), thanks to [@jph00](https://github.com/jph00)
+
+
 ## 0.0.3
 
 ### New Features
