@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Read, write, and build native Claude Code session transcripts">
+
+<title>session – fastclaude</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ff355f32169432f12e3b54c979a24ba.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="session – fastclaude">
+<meta property="og:description" content="Read, write, and build native Claude Code session transcripts">
+<meta property="og:site_name" content="fastclaude">
+<meta name="twitter:title" content="session – fastclaude">
+<meta name="twitter:description" content="Read, write, and build native Claude Code session transcripts">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">fastclaude</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./session.html">session</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fastclaude</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./session.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">session</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./protocol.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">protocol</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#session-layout" id="toc-session-layout" class="nav-link active" data-scroll-target="#session-layout">Session layout</a></li>
+  <li><a href="#building-sessions" id="toc-building-sessions" class="nav-link" data-scroll-target="#building-sessions">Building sessions</a></li>
+  <li><a href="#where-sessions-live" id="toc-where-sessions-live" class="nav-link" data-scroll-target="#where-sessions-live">Where sessions live</a></li>
+  <li><a href="#creating-dummy-data" id="toc-creating-dummy-data" class="nav-link" data-scroll-target="#creating-dummy-data">Creating dummy data</a>
+  <ul class="collapse">
+  <li><a href="#the-parent-chain" id="toc-the-parent-chain" class="nav-link" data-scroll-target="#the-parent-chain">The parent chain</a></li>
+  </ul></li>
+  <li><a href="#writing-a-session" id="toc-writing-a-session" class="nav-link" data-scroll-target="#writing-a-session">Writing a session</a>
+  <ul class="collapse">
+  <li><a href="#forking" id="toc-forking" class="nav-link" data-scroll-target="#forking">Forking</a></li>
+  </ul></li>
+  <li><a href="#synthetic-tool-calls" id="toc-synthetic-tool-calls" class="nav-link" data-scroll-target="#synthetic-tool-calls">Synthetic tool calls</a></li>
+  <li><a href="#a-sample-session" id="toc-a-sample-session" class="nav-link" data-scroll-target="#a-sample-session">A sample session</a></li>
+  <li><a href="#reading-a-session" id="toc-reading-a-session" class="nav-link" data-scroll-target="#reading-a-session">Reading a session</a></li>
+  <li><a href="#qualified-tool-names" id="toc-qualified-tool-names" class="nav-link" data-scroll-target="#qualified-tool-names">Qualified tool names</a></li>
+  <li><a href="#cleanup" id="toc-cleanup" class="nav-link" data-scroll-target="#cleanup">Cleanup</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/fastclaude/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="session.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">session</h1>
+</div>
+
+<div>
+  <div class="description">
+    Read, write, and build native Claude Code session transcripts
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="session-layout" class="level2">
+<h2 class="anchored" data-anchor-id="session-layout">Session layout</h2>
+<p>Claude Code stores each conversation as JSONL at <code>~/.claude/projects/&lt;dir&gt;/&lt;session-id&gt;.jsonl</code>. <code>&lt;dir&gt;</code> is the resolved project path with every non-alphanumeric character replaced by <code>-</code>, including underscores. On macOS, a project in <code>/tmp/foo</code> therefore appears under <code>-private-tmp-foo</code>. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_dir"><code>sess_dir</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_file"><code>sess_file</code></a> compute these paths. A transcript is named by the conversation’s first session id. <code>claude --resume</code> and post-compaction restarts can advertise a fresh id in <code>CLAUDE_CODE_SESSION_ID</code> while appending records to the original file, so the environment variable may name an id with no file behind it. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#cur_sess"><code>cur_sess</code></a> finds the project’s most recently modified transcript.</p>
+<p>Each line is one JSON object. The main fields are <code>type</code>, <code>uuid</code>, <code>parentUuid</code>, <code>sessionId</code>, <code>timestamp</code>, and <code>message</code>. Conversation records are <code>user</code> and <code>assistant</code>; a tool result is a <code>user</code> record containing <code>tool_result</code> blocks. The active conversation is the <code>parentUuid</code> chain walked back from the last record by <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_thread"><code>sess_thread</code></a>. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#load_sess"><code>load_sess</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#load_recs"><code>load_recs</code></a> read every record, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#rec_txt"><code>rec_txt</code></a> extracts each record’s readable text.</p>
+</section>
+<section id="building-sessions" class="level2">
+<h2 class="anchored" data-anchor-id="building-sessions">Building sessions</h2>
+<p>Resume does not care who wrote the file: a transcript assembled by hand resumes like any other. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_rec"><code>mk_rec</code></a> fills one record’s envelope, <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#append_sess"><code>append_sess</code></a> chain and write records, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#msgs2recs"><code>msgs2recs</code></a>/<a href="https://AnswerDotAI.github.io/fastclaude/session.html#msgs2sess"><code>msgs2sess</code></a> convert whole Anthropic-style message lists into resumable sessions, deterministically when given a key. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_tu"><code>mk_tu</code></a>, <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_tr"><code>mk_tr</code></a>, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#tool_turn"><code>tool_turn</code></a> build synthetic tool exchanges, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#prefix_tools"><code>prefix_tools</code></a> qualifies caller tool names the way Claude Code records them.</p>
+<p>Reading functions do not modify transcripts. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#append_sess"><code>append_sess</code></a> do: read their docs and inspect the target records before calling them; <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> replaces a whole session file. <code>llmsurgery</code> builds on this module for finding, searching, curating, converting, and compacting sessions.</p>
+<p>Claude Code stores every conversation as a JSONL transcript, and <code>claude --resume &lt;session-id&gt;</code> rebuilds a conversation from one. It does not care who wrote the file. A transcript assembled by hand, including tool calls that never really ran, resumes like any other. So sessions can be mined for data, saved as templates, or built synthetically to give a fresh session worked examples of tool use already in its context. This module finds, reads, and writes them.</p>
+<div id="f8f7d358" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:41.767930+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.252555+00:00&quot;,&quot;total&quot;:0.4846290159999995}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastclaude.core <span class="im">import</span> astream</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> aidialog.msg_parts <span class="im">import</span> Msg, Text</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile, shutil</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="where-sessions-live" class="level2">
+<h2 class="anchored" data-anchor-id="where-sessions-live">Where sessions live</h2>
+<p>Each project gets a folder under <code>~/.claude/projects</code>, named by the project’s absolute path with every character that is not a letter or digit replaced by <code>-</code>. The path is resolved first, which matters on macOS, where <code>/tmp</code> and <code>/var</code> are symlinks into <code>/private</code>. The folder for a project in <code>/tmp/foo</code> is therefore <code>-private-tmp-foo</code>.</p>
+<div id="ac2b2993" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.253811+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.316920+00:00&quot;,&quot;total&quot;:0.06311308499999768}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L34" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sess_dir" class="level3">
+<h3 class="anchored" data-anchor-id="sess_dir">sess_dir</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sess_dir(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The folder where Claude Code keeps session transcripts for the project at <code>cwd</code></em></p>
+</section>
+</div>
+<div id="97ccd9ab" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sess_dir()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('/Users/jhoward/.claude/projects/-Users-jhoward-aai-ws-llmsurgery-nbs')</code></pre>
+</div>
+</div>
+<p>Underscores are replaced too, which is easy to get wrong when sanitizing by hand:</p>
+<div id="7437e817" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>test_eq(sess_dir(<span class="st">'/a/b_c'</span>).name, <span class="st">'-a-b-c'</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>test_eq(sess_dir(<span class="st">'~'</span>), sess_dir(Path.home()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Claude Code exports a session id as <code>CLAUDE_CODE_SESSION_ID</code> to every process it spawns, shell commands and MCP servers alike. But it identifies the current run, not the conversation: <code>claude --resume</code> and post-compaction restarts put a fresh id in the environment, while records keep appending to the original transcript, which is named by the conversation’s first session id. So the env var names the transcript only while a conversation is on its first run, and can advertise an id that names no file at all. The reliable name for “this conversation” is instead the most recently modified transcript in the project’s session folder: appends keep the live transcript’s mtime freshest through restarts and resumes alike. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#cur_sess"><code>cur_sess</code></a> uses that heuristic, keeping the env var only as a fallback for when no transcript exists yet. One caveat: two conversations open on the same project trade the newest spot on every write, so under concurrent sessions pass an explicit <code>sid</code> (clikernel sidesteps this by resolving its host conversation once, at worker spawn, when the spawning conversation’s transcript is freshest).</p>
+<div id="13719abc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.318133+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.320460+00:00&quot;,&quot;total&quot;:0.002328485000006708}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L41" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="cur_sess" class="level3">
+<h3 class="anchored" data-anchor-id="cur_sess">cur_sess</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cur_sess(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The current conversation’s session id: the most recent transcript for the project at <code>cwd</code>, else the advertised id</em></p>
+</section>
+</div>
+<div id="960b9d4a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cur_sess()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The newest transcript wins; with no transcripts at all, the advertised id is used:</p>
+<div id="930e04b6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tp <span class="op">=</span> Path(tempfile.mkdtemp())</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sd <span class="op">=</span> sess_dir(tp)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>sd.mkdir(parents<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i,n <span class="kw">in</span> <span class="bu">enumerate</span>([<span class="st">'older'</span>,<span class="st">'newer'</span>]):</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    (sd<span class="op">/</span><span class="ss">f'</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">.jsonl'</span>).touch()</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    os.utime(sd<span class="op">/</span><span class="ss">f'</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">.jsonl'</span>, (i,i))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>test_eq(cur_sess(tp), <span class="st">'newer'</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>test_eq(cur_sess(tempfile.mkdtemp()), os.environ.get(<span class="st">'CLAUDE_CODE_SESSION_ID'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Prefix resolution needs a glob to yield exactly one path. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#uniq_path"><code>uniq_path</code></a> returns a glob’s single result, None when nothing matched, and raises when several did.</p>
+<div id="6ceed858" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.321888+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.324205+00:00&quot;,&quot;total&quot;:0.0023186829999986003}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L49" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="uniq_path" class="level3">
+<h3 class="anchored" data-anchor-id="uniq_path">uniq_path</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> uniq_path(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    paths, <span class="co"># Candidate paths, e.g. from a glob</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    ref, <span class="co"># The reference they were matched against, for the error message</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The single path in <code>paths</code>, or None if there are none; raises if <code>ref</code> is ambiguous</em></p>
+</section>
+</div>
+<div id="f91047b2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.325283+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.327671+00:00&quot;,&quot;total&quot;:0.002389937999993208}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L59" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sess_file" class="level3">
+<h3 class="anchored" data-anchor-id="sess_file">sess_file</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sess_file(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    sid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session id or unique id prefix; `cur_sess(cwd)` if None</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory, then all projects, if None</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Path to the transcript of session <code>sid</code> for the project at <code>cwd</code></em></p>
+</section>
+</div>
+<p>Under Claude Code, <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_file"><code>sess_file()</code></a> with no arguments is therefore the running conversation’s own transcript, surviving resumes and restarts. Session ids are unique across projects, so when an explicit <code>sid</code>’s file is not in the current directory’s folder, <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_file"><code>sess_file</code></a> looks across all project folders, and the defaults work from anywhere, including a notebook kernel whose working directory is not the project root.</p>
+<div id="37cff320" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>test_eq(sess_file(<span class="st">'abc'</span>, <span class="st">'/a/b_c'</span>), SESSIONS<span class="op">/</span><span class="st">'-a-b-c'</span><span class="op">/</span><span class="st">'abc.jsonl'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A <code>sid</code> that names no transcript is treated as an id prefix, so the eight characters that identify a session at a glance are enough to open it. An exact id still resolves without globbing, and a prefix matching more than one transcript raises rather than choosing: silently opening the wrong session is the failure worth spending an error on.</p>
+<div id="38f4043d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>test_eq(sess_file(<span class="st">'old'</span>, tp), sd<span class="op">/</span><span class="st">'older.jsonl'</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> n <span class="kw">in</span> [<span class="st">'dup-a'</span>,<span class="st">'dup-b'</span>]: (sd<span class="op">/</span><span class="ss">f'</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">.jsonl'</span>).touch()</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> expect_fail(contains<span class="op">=</span><span class="st">'matches 2 sessions'</span>): sess_file(<span class="st">'dup'</span>, tp)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>sess_file(<span class="st">'new'</span>, tp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="db12d0b2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.328678+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.330712+00:00&quot;,&quot;total&quot;:0.002035326999987319}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L71" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="load_recs" class="level3">
+<h3 class="anchored" data-anchor-id="load_recs">load_recs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_recs(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    path</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Session records read directly from JSONL <code>path</code></em></p>
+</section>
+</div>
+</section>
+<section id="creating-dummy-data" class="level2">
+<h2 class="anchored" data-anchor-id="creating-dummy-data">Creating dummy data</h2>
+<p>The examples below use real Claude Code transcripts rather than approximating its record format. Each fixture builder returns immediately when its target exists, so a normal notebook run is deterministic; delete the generated file or directory before rerunning when the fixture needs refreshing.</p>
+<div id="c611f8b8" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mk_ant_fixture_project(path<span class="op">=</span><span class="va">None</span>):  <span class="co"># chkstyle: ignore-node</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Create the minimal Claude project used by the ant fixtures"</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> ant_data.is_dir(), <span class="ss">f'ant fixtures ship as package data; missing </span><span class="sc">{</span>ant_data<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> Path(path) <span class="cf">if</span> path <span class="cf">else</span> ant_data<span class="op">/</span><span class="st">'project'</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    skill <span class="op">=</span> root<span class="op">/</span><span class="st">'.claude/skills/ant-fixture/SKILL.md'</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> skill.exists(): <span class="cf">return</span> root</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    skill.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    skill.write_text(<span class="st">"""---</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="st">name: ant-fixture</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="st">description: Report the fixed ant fixture fact when asked.</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="st">---</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="st">When invoked, report exactly: `The ant fixture skill is loaded.`</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> root</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The fixture project supplies the smallest useful project environment: one local skill with a fixed response. The fixtures live inside the package (<code>fastclaude/data/ant</code>) and ship with it, anchored via <code>importlib.resources</code> so any working directory finds them. <code>ant_data</code> is exported, so downstream packages (llmsurgery, notably) build their own narratives on the same captures.</p>
+<div id="23251bf8" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mk_ant_fixture_project()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('data/ant/project')</code></pre>
+</div>
+</div>
+<p>The source fixture is a real Claude Code session with a deliberately narrow surface, captured through <a href="https://AnswerDotAI.github.io/fastclaude/core.html#astream"><code>fastclaude.core.astream</code></a> itself. Claude loads the one project skill, runs one Bash command, evaluates one expression through the persistent clikernel MCP server, and finishes with fixed text. This captures genuine skill injection, tool calls, tool results, and Claude Code bookkeeping without unrelated session noise.</p>
+<div id="45d78a22" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> mk_ant_source(path<span class="op">=</span><span class="va">None</span>):  <span class="co"># chkstyle: ignore-node</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Create the real Claude session used by the ant fixtures"</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    path <span class="op">=</span> Path(path) <span class="cf">if</span> path <span class="cf">else</span> ant_data<span class="op">/</span><span class="st">'source.jsonl'</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path.exists(): <span class="cf">return</span> path</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> mk_ant_fixture_project(path.parent<span class="op">/</span><span class="st">'project'</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    cmd <span class="op">=</span> shutil.which(<span class="st">'clikernel-mcp'</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> cmd: <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="st">'clikernel-mcp'</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="st">"Use the ant-fixture skill. Then use Bash to run `printf 'bash fixture</span><span class="ch">\\</span><span class="st">n'`. Then use clikernel to evaluate `6*7`. After all tools finish, reply exactly: fixture complete."</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    run <span class="op">=</span> astream([Msg(<span class="st">'user'</span>, [Text(prompt)])], model<span class="op">=</span><span class="st">'haiku'</span>, system<span class="op">=</span><span class="st">'Follow the requested tool sequence exactly.'</span>,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>        cwd<span class="op">=</span>root, native_tools<span class="op">=</span>(<span class="st">'Skill'</span>,<span class="st">'Bash'</span>), allowed<span class="op">=</span>(<span class="st">'Bash'</span>,<span class="st">'mcp__clikernel__execute'</span>),</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>        mcp_config<span class="op">=</span><span class="bu">dict</span>(clikernel<span class="op">=</span><span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'stdio'</span>, command<span class="op">=</span>cmd)), setting_sources<span class="op">=</span>[<span class="st">'project'</span>], max_turns<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    sid <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> run:</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> m.get(<span class="st">'type'</span>)<span class="op">==</span><span class="st">'system'</span> <span class="kw">and</span> m.get(<span class="st">'subtype'</span>)<span class="op">==</span><span class="st">'init'</span>: sid <span class="op">=</span> m.get(<span class="st">'session_id'</span>)</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    src <span class="op">=</span> sess_file(sid, root)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> src.exists(): <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(src)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    path.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    path.write_bytes(src.read_bytes())</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>On the first run, <code>mk_ant_source</code> performs a real model run and copies Claude Code’s transcript into the packaged <code>data/ant/source.jsonl</code>. Later runs reuse that checked-in transcript, while deleting the file explicitly requests a fresh capture against the installed Claude Code version.</p>
+<div id="abff3961" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> mk_ant_source()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('data/ant/source.jsonl')</code></pre>
+</div>
+</div>
+<p>A real transcript contains both conversation and Claude Code bookkeeping. Counting record types first shows what the file actually contains before we decide which subset each reader needs.</p>
+<div id="cbcfe8c4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>source_path <span class="op">=</span> ant_data<span class="op">/</span><span class="st">'source.jsonl'</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>source_recs <span class="op">=</span> load_recs(source_path)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(source_recs),Counter(source_recs.attrgot(<span class="st">'type'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>(20,
+ Counter({'assistant': 8,
+          'user': 5,
+          'attachment': 3,
+          'queue-operation': 2,
+          'ai-title': 1,
+          'last-prompt': 1}))</code></pre>
+</div>
+</div>
+<p>The user and assistant records carry the conversation. Attachments inject context such as skill contents; queue operations, titles, and prompt markers are bookkeeping retained in the JSONL but not ordinary chat messages.</p>
+<section id="the-parent-chain" class="level3">
+<h3 class="anchored" data-anchor-id="the-parent-chain">The parent chain</h3>
+<div id="fc646518" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.333745+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.336274+00:00&quot;,&quot;total&quot;:0.0025305390000056605}}" data-execution_count="15">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L79" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sess_thread" class="level3">
+<h3 class="anchored" data-anchor-id="sess_thread">sess_thread</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sess_thread(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    recs, <span class="co"># Session records, e.g. from `load_sess`</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The records on the active conversation chain, walking <code>parentUuid</code> back from the last record</em></p>
+</section>
+</div>
+<p>Claude reconstructs a conversation by starting at the final linked conversation record and walking <code>parentUuid</code> backwards. Some bookkeeping records, including <code>custom-title</code>, carry UUIDs but are not part of that chain, so <a href="https://AnswerDotAI.github.io/fastclaude/session.html#sess_thread"><code>sess_thread</code></a> considers only user, assistant, attachment, and system records.</p>
+<div id="1229c61d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>source_thread <span class="op">=</span> sess_thread(source_recs)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(source_recs),<span class="bu">len</span>(source_thread),Counter(source_thread.attrgot(<span class="st">'type'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>(20, 16, Counter({'assistant': 8, 'user': 5, 'attachment': 3}))</code></pre>
+</div>
+</div>
+<p>The four omitted records are unlinked bookkeeping. The active chain retains conversation records and injected-context attachments, and every consecutive pair must link correctly.</p>
+<div id="2555ae66" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(b.parentUuid<span class="op">==</span>a.uuid <span class="cf">for</span> a,b <span class="kw">in</span> <span class="bu">zip</span>(source_thread,source_thread[<span class="dv">1</span>:]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Breaking a parent link makes everything before it unreachable, which mirrors what resume does with abandoned or malformed branches. A <em>cyclic</em> chain (possible only in a corrupt file, e.g.&nbsp;one holding duplicate uuids) raises instead of walking forever - and the writers refuse to create such a file in the first place:</p>
+<div id="c9a0984b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>broken <span class="op">=</span> L(obj2dict(r) <span class="cf">for</span> r <span class="kw">in</span> source_thread)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>broken[<span class="op">-</span><span class="dv">2</span>][<span class="st">'parentUuid'</span>] <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(sess_thread(L(dict2obj(r) <span class="cf">for</span> r <span class="kw">in</span> broken))), <span class="dv">2</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>cyc <span class="op">=</span> L(dict2obj(obj2dict(r)) <span class="cf">for</span> r <span class="kw">in</span> source_thread)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>cyc[<span class="op">-</span><span class="dv">1</span>][<span class="st">'parentUuid'</span>] <span class="op">=</span> cyc[<span class="op">-</span><span class="dv">1</span>][<span class="st">'uuid'</span>]</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>test_fail(<span class="kw">lambda</span>: sess_thread(cyc), contains<span class="op">=</span><span class="st">'cycle'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="7e073815" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.338352+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.340452+00:00&quot;,&quot;total&quot;:0.0021010990000007723}}" data-execution_count="18">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L100" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rec_txt" class="level3">
+<h3 class="anchored" data-anchor-id="rec_txt">rec_txt</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rec_txt(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    r, <span class="co"># A session record</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Every readable string in <code>r</code>’s message content, joined, for finding records by text</em></p>
+</section>
+</div>
+</section>
+</section>
+<section id="writing-a-session" class="level2">
+<h2 class="anchored" data-anchor-id="writing-a-session">Writing a session</h2>
+<p>Records are plain dicts, so writing a session comes down to filling the envelope and linking the chain. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_rec"><code>mk_rec</code></a> fills the envelope for one message. It writes the optional bookkeeping a real transcript carries (<code>version</code>, <code>gitBranch</code>, <code>userType</code>, <code>entrypoint</code>, <code>session_id</code>, API metadata on assistant records, and <code>toolUseResult</code> mirroring a tool result’s content, which is what the transcript UI renders), not only the six required fields: what Claude Code’s LLM side makes of a sparse-but-valid record is close to untestable, so we err towards realistic.</p>
+<p>Two records with the same content get different files by default, since ids and timestamps are fresh each call. Sometimes the opposite is wanted: the same history should produce byte-identical records, so the same session id maps to the same file however many times it is rebuilt. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#canon"><code>canon</code></a> gives a canonical JSON rendering to hash, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#stable_uuid"><code>stable_uuid</code></a> turns any string into a deterministic uuid. <code>fastllm_claude_code.core</code> derives its session and record ids this way, and a session template built from a fixed script can too.</p>
+<div id="156e789e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.341355+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.343342+00:00&quot;,&quot;total&quot;:0.0019884529999956158}}" data-execution_count="20">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L113" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="stable_uuid" class="level3">
+<h3 class="anchored" data-anchor-id="stable_uuid">stable_uuid</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> stable_uuid(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    s</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A uuid deterministically derived from string <code>s</code></em></p>
+</section>
+</div>
+<div id="33f6bc47" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.343405+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.345413+00:00&quot;,&quot;total&quot;:0.0020098709999984976}}" data-execution_count="21">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L109" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="canon" class="level3">
+<h3 class="anchored" data-anchor-id="canon">canon</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> canon(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    o</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Canonical compact JSON for <code>o</code>, key-sorted, for stable hashing</em></p>
+</section>
+</div>
+<p>Canonical JSON ignores dictionary insertion order, while <a href="https://AnswerDotAI.github.io/fastclaude/session.html#stable_uuid"><code>stable_uuid</code></a> maps the same key to the same UUID and different keys to different UUIDs.</p>
+<div id="3c2fd929" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>test_eq(canon(<span class="bu">dict</span>(b<span class="op">=</span><span class="dv">1</span>, a<span class="op">=</span><span class="dv">2</span>)), canon(<span class="bu">dict</span>(a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">1</span>)))</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>test_eq(stable_uuid(<span class="st">'x'</span>), stable_uuid(<span class="st">'x'</span>))</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> stable_uuid(<span class="st">'x'</span>) <span class="op">!=</span> stable_uuid(<span class="st">'y'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With ids, timestamps, and token estimates in hand, <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_rec"><code>mk_rec</code></a> fills one message’s complete record:</p>
+<div id="1b1cec31" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.349231+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.353237+00:00&quot;,&quot;total&quot;:0.004008084999995276}}" data-execution_count="24">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L125" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="mk_rec" class="level3">
+<h3 class="anchored" data-anchor-id="mk_rec">mk_rec</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mk_rec(</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    role, <span class="co"># 'user' or 'assistant'</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    content, <span class="co"># A string, or a list of content blocks</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    cwd:<span class="bu">str</span><span class="op">=</span><span class="st">'.'</span>, <span class="co"># Project directory recorded in the envelope</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    uid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Record uuid; random if None</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    ts:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># ISO8601 timestamp; the current time if None</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'claude-sonnet-4-6'</span>, <span class="co"># Recorded in assistant API metadata; None omits it, so resume uses the user's default</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    input_toks:<span class="bu">int</span><span class="op">=</span><span class="dv">0</span>, <span class="co"># `input_tokens` recorded in assistant usage, e.g. an estimate of the context so far</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>kwargs</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A transcript record for one conversation message, ready for <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a></em></p>
+</section>
+</div>
+<div id="285f2545" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>mk_rec(<span class="st">'user'</span>, <span class="st">'Hello!'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'type': 'user',
+ 'uuid': '37c5febb-1af0-4afc-b44a-9df9eaed0fa4',
+ 'parentUuid': None,
+ 'sessionId': None,
+ 'timestamp': '2026-07-17T05:27:38.969Z',
+ 'cwd': '/Users/jhoward/aai-ws/llmsurgery/nbs',
+ 'version': '2.1.206',
+ 'gitBranch': 'HEAD',
+ 'isSidechain': False,
+ 'userType': 'external',
+ 'permissionMode': 'default',
+ 'message': {'type': 'message', 'role': 'user', 'content': 'Hello!'}}</code></pre>
+</div>
+</div>
+<p>Assistant records get deterministic API metadata derived from the record id, and <code>stop_reason</code> reflects a trailing tool call:</p>
+<div id="ca12d7ad" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>tu <span class="op">=</span> [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'tool_use'</span>, <span class="bu">id</span><span class="op">=</span><span class="st">'toolu_01'</span>, name<span class="op">=</span><span class="st">'probe'</span>, <span class="bu">input</span><span class="op">=</span>{})]</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> mk_rec(<span class="st">'assistant'</span>, tu, uid<span class="op">=</span>stable_uuid(<span class="st">'demo'</span>), ts<span class="op">=</span><span class="st">'2026-01-01T00:00:00.000Z'</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>test_eq(r[<span class="st">'message'</span>][<span class="st">'stop_reason'</span>], <span class="st">'tool_use'</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>test_eq(r, mk_rec(<span class="st">'assistant'</span>, tu, uid<span class="op">=</span>stable_uuid(<span class="st">'demo'</span>), ts<span class="op">=</span><span class="st">'2026-01-01T00:00:00.000Z'</span>))</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'requestId'</span> <span class="kw">in</span> r <span class="kw">and</span> <span class="st">'requestId'</span> <span class="kw">not</span> <span class="kw">in</span> mk_rec(<span class="st">'user'</span>, <span class="st">'hi'</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>test_eq(r[<span class="st">'message'</span>][<span class="st">'usage'</span>][<span class="st">'output_tokens'</span>], _est_toks(tu))</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'model'</span> <span class="kw">not</span> <span class="kw">in</span> mk_rec(<span class="st">'assistant'</span>, tu, model<span class="op">=</span><span class="va">None</span>)[<span class="st">'message'</span>]</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>test_eq(mk_rec(<span class="st">'user'</span>, <span class="st">'hi'</span>, cwd<span class="op">=</span><span class="st">'~'</span>)[<span class="st">'cwd'</span>], <span class="bu">str</span>(Path.home()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>API-side messages carry artifacts a real transcript never contains: <code>cache_control</code> markers, and text-only user turns split into blocks where Claude Code records one plain string. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_rec"><code>mk_rec</code></a> scrubs both, so a written session is indistinguishable from one Claude Code recorded itself.</p>
+<div id="b4c74fcb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'Hi '</span>, cache_control<span class="op">=</span><span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'ephemeral'</span>)), <span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'there.'</span>)]</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>test_eq(mk_rec(<span class="st">'user'</span>, cb)[<span class="st">'message'</span>][<span class="st">'content'</span>], <span class="st">'Hi there.'</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>test_eq(mk_rec(<span class="st">'user'</span>, [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'hi'</span>)])[<span class="st">'message'</span>][<span class="st">'content'</span>], <span class="st">'hi'</span>)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>tr <span class="op">=</span> mk_rec(<span class="st">'user'</span>, [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'tool_result'</span>, tool_use_id<span class="op">=</span><span class="st">'t1'</span>, content<span class="op">=</span><span class="st">'ok'</span>, cache_control<span class="op">=</span><span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'ephemeral'</span>))])</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>test_eq(tr[<span class="st">'message'</span>][<span class="st">'content'</span>], [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'tool_result'</span>, tool_use_id<span class="op">=</span><span class="st">'t1'</span>, content<span class="op">=</span><span class="st">'ok'</span>)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> assigns a session id, chains each record to the one before, and writes the file where <code>claude --resume</code> will look for it. It re-links <code>parentUuid</code> unconditionally, so it is for writing linear conversations. Records without a <code>uuid</code> (Claude Code bookkeeping such as <code>last-prompt</code> or <code>mode</code>) ride along unchained, so a loaded real transcript can be edited and written back. To copy a session while keeping its branch structure, write the records yourself.</p>
+<div id="e2e5c833" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.355515+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.358065+00:00&quot;,&quot;total&quot;:0.0025527920000030235}}" data-execution_count="26">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L167" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="save_sess" class="level3">
+<h3 class="anchored" data-anchor-id="save_sess">save_sess</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> save_sess(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    recs, <span class="co"># Records in conversation order, e.g. from `mk_rec`</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    sid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session id; a fresh uuid if None</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    ts:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># If given, stamp every record's timestamp: True for the current time, or an ISO8601 string</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Chain <code>recs</code>, write them as session <code>sid</code> for the project at <code>cwd</code>, and return <code>sid</code></em></p>
+</section>
+</div>
+<div id="ad557cf1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.359216+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.361641+00:00&quot;,&quot;total&quot;:0.00242594899999915}}" data-execution_count="28">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L182" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="append_sess" class="level3">
+<h3 class="anchored" data-anchor-id="append_sess">append_sess</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> append_sess(</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    recs, <span class="co"># Records to append, e.g. a munged template round</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    sid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session to append to; `cur_sess()` if None</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    ts:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># If given, stamp each appended record's timestamp: True for the current time, or an ISO8601 string</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Chain <code>recs</code> onto the tail of session <code>sid</code> and append them to its transcript, returning <code>sid</code></em></p>
+</section>
+</div>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/session.html#append_sess"><code>append_sess</code></a> is the mid-life counterpart: it chains new records onto the transcript’s tail without rewriting the existing bytes, so structures already in the file (compaction records, sidechains) are left untouched. It’s how a worked round gets spliced into an existing conversation, e.g.&nbsp;llmdojo’s <code>claudedojo -r</code> refreshing a session after a compaction.</p>
+<p>Whole conversations convert in one call: <a href="https://AnswerDotAI.github.io/fastclaude/session.html#msgs2recs"><code>msgs2recs</code></a> takes Anthropic-style messages (dicts with <code>role</code> and <code>content</code>, like <code>claude_mk_msg</code> or fastllm’s <code>denorm_msgs</code> produce) and builds one deterministic record per message, ready for <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a>. The same messages and key give the same ids, so a rebuilt session file is byte-identical.</p>
+<div id="ad51905c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.362787+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.365313+00:00&quot;,&quot;total&quot;:0.0025279620000020486}}" data-execution_count="30">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L196" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="msgs2recs" class="level3">
+<h3 class="anchored" data-anchor-id="msgs2recs">msgs2recs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> msgs2recs(</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="co"># Anthropic-style messages: dicts with `role` and `content`</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    key:<span class="bu">str</span><span class="op">=</span><span class="st">''</span>, <span class="co"># Salt: the same messages and key give the same ids</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    cwd:<span class="bu">str</span><span class="op">=</span><span class="st">'.'</span>, <span class="co"># Project directory recorded in the envelopes</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    ts:<span class="bu">str</span><span class="op">=</span><span class="st">'2026-01-01T00:00:00.000Z'</span>, <span class="co"># Timestamp for every record</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'claude-sonnet-4-6'</span>, <span class="co"># Recorded in assistant API metadata; None omits it, so resume uses the user's default</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>kwargs</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Deterministic transcript records for <code>msgs</code>, one record per message</em></p>
+</section>
+</div>
+<p>Converting the same messages with the same key is deterministic. Changing the key changes record ids, while roles and accumulated token estimates follow the message sequence.</p>
+<div id="7b9e66d7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>den <span class="op">=</span> [<span class="bu">dict</span>(role<span class="op">=</span><span class="st">'user'</span>, content<span class="op">=</span><span class="st">'Ping?'</span>), <span class="bu">dict</span>(role<span class="op">=</span><span class="st">'assistant'</span>, content<span class="op">=</span>[<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'Pong.'</span>)])]</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>r1,r2 <span class="op">=</span> msgs2recs(den, <span class="st">'k'</span>),msgs2recs(den, <span class="st">'k'</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>test_eq(canon(r1), canon(r2))</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>test_ne(r1[<span class="dv">0</span>][<span class="st">'uuid'</span>], msgs2recs(den, <span class="st">'other'</span>)[<span class="dv">0</span>][<span class="st">'uuid'</span>])</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>test_eq([r[<span class="st">'type'</span>] <span class="cf">for</span> r <span class="kw">in</span> r1], [<span class="st">'user'</span>,<span class="st">'assistant'</span>])</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>test_eq(r1[<span class="dv">1</span>][<span class="st">'message'</span>][<span class="st">'usage'</span>], <span class="bu">dict</span>(input_tokens<span class="op">=</span><span class="dv">1</span>, output_tokens<span class="op">=</span><span class="dv">3</span>, cache_creation_input_tokens<span class="op">=</span><span class="dv">0</span>, cache_read_input_tokens<span class="op">=</span><span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/session.html#msgs2recs"><code>msgs2recs</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> compose into the one-call operation a stateless caller wants: file this message list as a session, and return the id to resume. The sid is derived from the messages and a salt, so the same history maps to the same file—replaying a conversation is idempotent rather than littering the project with near-duplicate transcripts.</p>
+<div id="af4ec3fd" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.366721+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.369668+00:00&quot;,&quot;total&quot;:0.002948520000003896}}" data-execution_count="32">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L213" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="msgs2sess" class="level3">
+<h3 class="anchored" data-anchor-id="msgs2sess">msgs2sess</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> msgs2sess(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="co"># Anthropic-style messages: dicts with `role` and `content`</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    key:<span class="bu">str</span><span class="op">=</span><span class="st">''</span>, <span class="co"># Salt: the same messages and key give the same session id</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    cwd:<span class="bu">str</span><span class="op">=</span><span class="st">'.'</span>, <span class="co"># Project directory the session is filed under</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    extra:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Records appended after the messages, e.g. from `mk_deferred`</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    ts:<span class="bu">str</span><span class="op">=</span><span class="st">'2026-01-01T00:00:00.000Z'</span>, <span class="co"># Timestamp for every record</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'claude-sonnet-4-6'</span>, <span class="co"># Recorded in assistant API metadata; None omits it, so resume uses the user's default</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Write <code>msgs</code> as a resumable session with a content-stable id, returning the sid</em></p>
+</section>
+</div>
+<div id="d8f0600b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>tp2 <span class="op">=</span> Path(tempfile.mkdtemp())</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>psid <span class="op">=</span> msgs2sess(den, key<span class="op">=</span><span class="st">'pingpong'</span>, cwd<span class="op">=</span>tp2)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>test_eq(msgs2sess(den, key<span class="op">=</span><span class="st">'pingpong'</span>, cwd<span class="op">=</span>tp2), psid)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>back <span class="op">=</span> load_recs(sess_file(psid, tp2))</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>test_eq(back[<span class="op">-</span><span class="dv">1</span>].message.content[<span class="dv">0</span>].text, <span class="st">'Pong.'</span>)</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>test_eq(sess_thread(back).attrgot(<span class="st">'uuid'</span>), back.attrgot(<span class="st">'uuid'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="forking" class="level3">
+<h3 class="anchored" data-anchor-id="forking">Forking</h3>
+<div id="78c20972" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.370625+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.372641+00:00&quot;,&quot;total&quot;:0.0020173809999874948}}" data-execution_count="34">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L225" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sess_id" class="level3">
+<h3 class="anchored" data-anchor-id="sess_id">sess_id</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sess_id(</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    recs</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The session id in transcript records <code>recs</code></em></p>
+</section>
+</div>
+<p>Forking is transcript surgery, not a model operation: copy the thread, give every record a fresh uuid, rebuild the parent links under a new session id, and record where each copy came from. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#fork_session"><code>fork_session</code></a> implements the native recipe: sidechains drop, progress records vanish from the output but stay in the chain walk, only the last record’s timestamp refreshes (resume finds its leaf by recency), each record gains a <code>forkedFrom</code> backpointer, and a <code>custom-title</code> record names the fork. The title falls back to the source’s title, then its first prompt.</p>
+<div id="239bf10e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.377299+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.381764+00:00&quot;,&quot;total&quot;:0.004467666000010695}}" data-execution_count="36">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L236" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fork_session" class="level3">
+<h3 class="anchored" data-anchor-id="fork_session">fork_session</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fork_session(</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    sid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session id or unique prefix to fork; the current session if None</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    up_to:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Record uuid to cut at (inclusive); the whole transcript if None</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    title:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Fork title; the source's `_fork_title` plus ' (fork)' if None</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Fork a session natively: fresh session id and record uuids, rebuilt parent chain; returns the new sid</em></p>
+</section>
+</div>
+<div id="df2ad121" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> mk_ant_fork(path<span class="op">=</span><span class="va">None</span>, source<span class="op">=</span><span class="va">None</span>):  <span class="co"># chkstyle: ignore-node</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Create the native Claude fork used by the ant fixtures"</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    path,source <span class="op">=</span> Path(path) <span class="cf">if</span> path <span class="cf">else</span> ant_data<span class="op">/</span><span class="st">'fork.jsonl'</span>,Path(source) <span class="cf">if</span> source <span class="cf">else</span> ant_data<span class="op">/</span><span class="st">'source.jsonl'</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path.exists(): <span class="cf">return</span> path</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> mk_ant_source(source)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> mk_ant_fixture_project(source.parent<span class="op">/</span><span class="st">'project'</span>)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    sid <span class="op">=</span> sess_id(load_recs(source))</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    live <span class="op">=</span> sess_file(sid, root)</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    live.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>    live.write_bytes(source.read_bytes())</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    src <span class="op">=</span> sess_file(fork_session(sid, root, title<span class="op">=</span><span class="st">'ant fixture fork'</span>), root)</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    path.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>    path.write_bytes(src.read_bytes())</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>mk_ant_fork</code> stores the native fork beside it as <code>fork.jsonl</code>. Later runs reuse that fixture; deleting it requests a fresh fork.</p>
+<p>The stored fixture path confirms that the native fork is available for the examples below.</p>
+<div id="10eca7d1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> mk_ant_fork()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('data/ant/fork.jsonl')</code></pre>
+</div>
+</div>
+<p>Loading both transcripts shows the new session identity and the top-level records produced by the fork.</p>
+<div id="344e7c0b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>fork_path <span class="op">=</span> ant_data<span class="op">/</span><span class="st">'fork.jsonl'</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>fork_recs <span class="op">=</span> load_recs(fork_path)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>source_sid,fork_sid <span class="op">=</span> sess_id(source_recs),sess_id(fork_recs)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>source_sid,fork_sid,<span class="bu">len</span>(source_recs),<span class="bu">len</span>(fork_recs),Counter(fork_recs.attrgot(<span class="st">'type'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>('e12b4bd3-4f36-4dda-873d-2ff25d1f1044',
+ '5d2b9564-f7f8-48c3-b611-f33fbe39c577',
+ 20,
+ 17,
+ Counter({'assistant': 8, 'user': 5, 'attachment': 3, 'custom-title': 1}))</code></pre>
+</div>
+</div>
+<p>The fork has a fresh session ID. Its transcript contains the copied session records and the requested <code>custom-title</code>; unlinked bookkeeping from the captured source is absent.</p>
+<div id="61f220a2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>source_thread,fork_thread <span class="op">=</span> sess_thread(source_recs),sess_thread(fork_recs)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(source_thread),<span class="bu">len</span>(fork_thread),Counter(source_thread.attrgot(<span class="st">'type'</span>)),Counter(fork_thread.attrgot(<span class="st">'type'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>(16,
+ 16,
+ Counter({'assistant': 8, 'user': 5, 'attachment': 3}),
+ Counter({'assistant': 8, 'user': 5, 'attachment': 3}))</code></pre>
+</div>
+</div>
+<p>The active chains have the same record-type structure. Native forking assigns fresh record UUIDs and rebuilds the parent links under the fork’s session ID.</p>
+<div id="d8672472" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>test_ne(source_sid, fork_sid)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>test_eq(source_thread.attrgot(<span class="st">'type'</span>), fork_thread.attrgot(<span class="st">'type'</span>))</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">set</span>(fork_thread.attrgot(<span class="st">'sessionId'</span>)), {fork_sid})</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>test_ne(source_thread.attrgot(<span class="st">'uuid'</span>), fork_thread.attrgot(<span class="st">'uuid'</span>))</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>test_eq(fork_thread.attrgot(<span class="st">'parentUuid'</span>), [<span class="va">None</span>,<span class="op">*</span>fork_thread.attrgot(<span class="st">'uuid'</span>)[:<span class="op">-</span><span class="dv">1</span>]])</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>[(a.uuid,b.uuid) <span class="cf">for</span> a,b <span class="kw">in</span> <span class="bu">zip</span>(source_thread[:<span class="dv">3</span>],fork_thread[:<span class="dv">3</span>])]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[('f711b566-2404-41a5-a1b6-36f99d52e391',
+  '58718dc0-80ed-4298-befc-c933e7913a94'),
+ ('071ddef8-7dfb-42dc-b32c-38506751d50e',
+  '1e84ec59-9412-44c1-8f12-16aeef9a201c'),
+ ('05dd6db4-a8a1-422a-9617-ea7b19a00873',
+  '2773c527-c1a1-4816-9a3f-435a9cde9f45')]</code></pre>
+</div>
+</div>
+<p>Record envelopes change, while the readable conversation remains the same. Rendering the fork gives a direct view of the session that later compaction examples will use.</p>
+<div id="93641f1d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>test_eq([rec_txt(r) <span class="cf">for</span> r <span class="kw">in</span> source_thread], [rec_txt(r) <span class="cf">for</span> r <span class="kw">in</span> fork_thread])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/session.html#fork_session"><code>fork_session</code></a> reproduces that envelope exactly. Forking the source fixture into a scratch project yields the checked-in fork’s key sets record for record, the same readable thread, and the requested title; <code>up_to</code> cuts the copy at a chosen record:</p>
+<div id="3ba6855d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>fproj <span class="op">=</span> Path(tempfile.mkdtemp())</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>live <span class="op">=</span> sess_file(source_sid, fproj)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>live.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>live.write_bytes((ant_data<span class="op">/</span><span class="st">'source.jsonl'</span>).read_bytes())</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>myfork <span class="op">=</span> fork_session(source_sid, fproj, title<span class="op">=</span><span class="st">'ant fixture fork'</span>)</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>mrecs <span class="op">=</span> load_recs(sess_file(myfork, fproj))</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>test_ne(myfork, source_sid)</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>test_eq([<span class="bu">sorted</span>(r.keys()) <span class="cf">for</span> r <span class="kw">in</span> mrecs], [<span class="bu">sorted</span>(r.keys()) <span class="cf">for</span> r <span class="kw">in</span> fork_recs])</span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>test_eq([rec_txt(r) <span class="cf">for</span> r <span class="kw">in</span> sess_thread(mrecs)], [rec_txt(r) <span class="cf">for</span> r <span class="kw">in</span> source_thread])</span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>first(r <span class="cf">for</span> r <span class="kw">in</span> mrecs <span class="cf">if</span> r.get(<span class="st">'type'</span>)<span class="op">==</span><span class="st">'custom-title'</span>)[<span class="st">'customTitle'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>up_to</code> cuts the copy at a chosen record, and the scratch project cleans up:</p>
+<div id="1b7620db" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>cut <span class="op">=</span> fork_session(source_sid, fproj, up_to<span class="op">=</span>source_thread[<span class="dv">2</span>][<span class="st">'uuid'</span>])</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(sess_thread(load_recs(sess_file(cut, fproj)))), <span class="dv">3</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(sess_dir(fproj))</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(fproj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="synthetic-tool-calls" class="level2">
+<h2 class="anchored" data-anchor-id="synthetic-tool-calls">Synthetic tool calls</h2>
+<p>A worked tool call is two records joined by one id: a <code>tool_use</code> block in an assistant record, answered by a <code>tool_result</code> block in the user record that follows. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_tu"><code>mk_tu</code></a> and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_tr"><code>mk_tr</code></a> build the pair so the ids cannot drift, and <a href="https://AnswerDotAI.github.io/fastclaude/session.html#tool_turn"><code>tool_turn</code></a> assembles the full exchange, from request to reply.</p>
+<div id="f30f37c7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.384618+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.387038+00:00&quot;,&quot;total&quot;:0.002422031999998353}}" data-execution_count="38">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L289" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="tool_turn" class="level3">
+<h3 class="anchored" data-anchor-id="tool_turn">tool_turn</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tool_turn(</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    prompt, <span class="co"># The user request</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>    name, <span class="co"># Tool name</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>, <span class="co"># Tool arguments</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>    output, <span class="co"># Tool result</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    answer, <span class="co"># The assistant's closing text</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>kwargs</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A complete synthetic tool-use turn, as four records ready for <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a></em></p>
+</section>
+</div>
+<div id="769939f0" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.387109+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.389181+00:00&quot;,&quot;total&quot;:0.002073361000000773}}" data-execution_count="39">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L282" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="mk_tr" class="level3">
+<h3 class="anchored" data-anchor-id="mk_tr">mk_tr</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mk_tr(</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    tu, <span class="co"># The `tool_use` block being answered</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    content, <span class="co"># The tool's output</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The <code>tool_result</code> content block answering <code>tu</code></em></p>
+</section>
+</div>
+<div id="7863181b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.389252+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.391420+00:00&quot;,&quot;total&quot;:0.002169676999997705}}" data-execution_count="40">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L274" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="mk_tu" class="level3">
+<h3 class="anchored" data-anchor-id="mk_tu">mk_tu</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mk_tu(</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    name, <span class="co"># Tool name, as the transcript records it</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Tool arguments</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>    tid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># tool_use id; random if None</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A <code>tool_use</code> content block</em></p>
+</section>
+</div>
+<p>The sample session in the next section is built from exactly one such turn.</p>
+<p>One more record kind matters for replay: a <em>deferral</em>. When a <code>PreToolUse</code> hook answers a tool call with <code>permissionDecision: "defer"</code>, Claude Code ends the turn and records the pending call as a <code>hook_deferred_tool</code> attachment. Resuming a session whose transcript ends with that attachment makes Claude Code re-invoke the recorded call. The record is all the state there is, so it can be forged: file a conversation ending at an assistant <code>tool_use</code>, append <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_deferred"><code>mk_deferred</code></a> for it, and resume. That replay is how <code>fastclaude.core</code> continues a history that ends in a tool result.</p>
+<div id="6d524675" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.392550+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.395096+00:00&quot;,&quot;total&quot;:0.0025481850000090844}}" data-execution_count="42">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L303" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="mk_deferred" class="level3">
+<h3 class="anchored" data-anchor-id="mk_deferred">mk_deferred</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mk_deferred(</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    tu, <span class="co"># The pending `tool_use` block dict</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    cwd:<span class="bu">str</span><span class="op">=</span><span class="st">'.'</span>, <span class="co"># Project directory recorded in the envelope</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    uid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Record uuid; random if None</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    ts:<span class="bu">str</span><span class="op">=</span><span class="st">'2026-01-01T00:00:00.000Z'</span>, <span class="co"># Timestamp recorded in the envelope</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A <code>hook_deferred_tool</code> attachment record marking <code>tu</code> as deferred, ready for <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a></em></p>
+</section>
+</div>
+<div id="48de9b01" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>dtu <span class="op">=</span> mk_tu(<span class="st">'mcp__probe__flux_meter'</span>, tid<span class="op">=</span><span class="st">'toolu_01'</span>)</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>datt <span class="op">=</span> mk_deferred(dtu, uid<span class="op">=</span>stable_uuid(<span class="st">'datt'</span>))</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>test_eq(datt[<span class="st">'attachment'</span>], <span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'hook_deferred_tool'</span>, toolUseID<span class="op">=</span><span class="st">'toolu_01'</span>, toolName<span class="op">=</span><span class="st">'mcp__probe__flux_meter'</span>,</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    toolInput<span class="op">=</span>{}, hookName<span class="op">=</span><span class="st">'settings'</span>, hookEvent<span class="op">=</span><span class="st">'PreToolUse'</span>, permissionMode<span class="op">=</span><span class="st">'default'</span>))</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>datt[<span class="st">'attachment'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="a-sample-session" class="level2">
+<h2 class="anchored" data-anchor-id="a-sample-session">A sample session</h2>
+<p>The smallest useful synthetic history is a tool call that never ran, whose result carries a fact the model could not know any other way. We write it against a scratch project directory.</p>
+<div id="112ea03b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>proj <span class="op">=</span> Path(tempfile.mkdtemp())</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> tool_turn(<span class="st">'Measure the flux please.'</span>, <span class="st">'flux_meter'</span>, {}, <span class="st">'flux: 41.7 kilofinches'</span>,</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'The flux reading is 41.7 kilofinches.'</span>, cwd<span class="op">=</span>proj)</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>sid <span class="op">=</span> save_sess(sample, cwd<span class="op">=</span>proj)</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>sid</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>'6885e8fa-4b16-458d-9087-80eeff30e397'</code></pre>
+</div>
+</div>
+<p>A real transcript interleaves bookkeeping records that carry no <code>uuid</code> (<code>last-prompt</code>, <code>mode</code>, <code>file-history-snapshot</code>, …). <a href="https://AnswerDotAI.github.io/fastclaude/session.html#save_sess"><code>save_sess</code></a> chains around them: they keep their place in the file, untouched, so a loaded session survives an edit-and-write-back.</p>
+<div id="270434db" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>bk <span class="op">=</span> <span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'last-prompt'</span>, prompt<span class="op">=</span><span class="st">'Measure the flux please.'</span>)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>bsid <span class="op">=</span> save_sess([sample[<span class="dv">0</span>], bk, <span class="op">*</span>sample[<span class="dv">1</span>:]], cwd<span class="op">=</span>proj)</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>back <span class="op">=</span> load_recs(sess_file(bsid, proj))</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>test_eq(back[<span class="dv">1</span>], bk)</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>test_eq(back[<span class="dv">2</span>].parentUuid, back[<span class="dv">0</span>].uuid)</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>bsid</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="reading-a-session" class="level2">
+<h2 class="anchored" data-anchor-id="reading-a-session">Reading a session</h2>
+<p>A transcript is one JSON object per line. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#load_sess"><code>load_sess</code></a> wraps each in <code>dict2obj</code> so fields read as attributes.</p>
+<div id="a7704072" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.396255+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.398289+00:00&quot;,&quot;total&quot;:0.0020345479999974714}}" data-execution_count="44">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L316" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="load_sess" class="level3">
+<h3 class="anchored" data-anchor-id="load_sess">load_sess</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_sess(</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    sid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session id; the current session if None</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory; the current directory if None</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The records of session <code>sid</code>, as an <code>L</code> of attribute-access dicts</em></p>
+</section>
+</div>
+<p>Reading it back gives exactly what we wrote:</p>
+<div id="2859a165" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>back <span class="op">=</span> load_sess(sid, proj)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(back), <span class="dv">4</span>)</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>test_eq(back[<span class="op">-</span><span class="dv">1</span>].message.content[<span class="dv">0</span>].text, <span class="st">'The flux reading is 41.7 kilofinches.'</span>)</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>test_eq(back[<span class="dv">2</span>].message.content[<span class="dv">0</span>].tool_use_id, back[<span class="dv">1</span>].message.content[<span class="dv">0</span>].<span class="bu">id</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A record carries more than resume strictly needs. Only six fields are required: <code>type</code>, <code>uuid</code>, <code>parentUuid</code>, <code>sessionId</code>, <code>timestamp</code>, and <code>message</code>. The rest is optional bookkeeping. Strip <code>timestamp</code> and the session is not even found. <code>message</code> is shaped exactly as the Anthropic API shapes messages: a <code>role</code>, plus <code>content</code> as either a string or a list of content blocks (<code>text</code>, <code>tool_use</code>, <code>tool_result</code>, <code>thinking</code>). Assistant records in real transcripts also carry API metadata (<code>requestId</code>, <code>message.id</code>, <code>model</code>, usage), and none of it is needed on resume. In particular, synthetic histories work without <code>thinking</code> blocks.</p>
+<p>The proof that a written session works is still a resume. The sample below resumes the deliberately synthetic flux session because that section tests session writing; it spends tokens, so it is excluded from automated notebook runs.</p>
+<div id="e499b1af" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>opts <span class="op">=</span> ClaudeAgentOptions(resume<span class="op">=</span>sid, cwd<span class="op">=</span><span class="bu">str</span>(proj), model<span class="op">=</span><span class="st">'haiku'</span>)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> query(prompt<span class="op">=</span><span class="st">'What is the flux reading? Reply with only the value.'</span>, options<span class="op">=</span>opts):</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(m, ResultMessage): <span class="bu">print</span>(m.result)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>41.7 kilofinches</code></pre>
+</div>
+</div>
+</section>
+<section id="qualified-tool-names" class="level2">
+<h2 class="anchored" data-anchor-id="qualified-tool-names">Qualified tool names</h2>
+<p>On the wire, tools hosted by a caller are named <code>mcp__&lt;server&gt;__&lt;name&gt;</code>, and a resumed history containing earlier calls must use those same qualified names or Claude won’t connect them to the tools now on offer. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#prefix_tools"><code>prefix_tools</code></a> qualifies past <code>tool_use</code> blocks, leaving alone names that are already qualified and Claude Code’s own tools (e.g.&nbsp;<code>WebSearch</code>), which run under their bare names.</p>
+<div id="06ee0918" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-02T19:30:42.399781+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-02T19:30:42.402276+00:00&quot;,&quot;total&quot;:0.002496656999994684}}" data-execution_count="46">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/session.py#L324" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="prefix_tools" class="level3">
+<h3 class="anchored" data-anchor-id="prefix_tools">prefix_tools</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prefix_tools(</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="co"># Anthropic-style messages</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>    prefix, <span class="co"># Stub name prefix, e.g. 'mcp__probe__'</span></span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>    skip:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Native tool names to leave unqualified, e.g. 'WebSearch'</span></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Copy of <code>msgs</code> with client <code>tool_use</code> names qualified by <code>prefix</code></em></p>
+</section>
+</div>
+<div id="ff299971" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>tmsgs <span class="op">=</span> [<span class="bu">dict</span>(role<span class="op">=</span><span class="st">'assistant'</span>, content<span class="op">=</span>[<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'Checking.'</span>), <span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'tool_use'</span>, <span class="bu">id</span><span class="op">=</span><span class="st">'t1'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, <span class="bu">input</span><span class="op">=</span>{})]),</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">dict</span>(role<span class="op">=</span><span class="st">'assistant'</span>, content<span class="op">=</span>[<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'tool_use'</span>, <span class="bu">id</span><span class="op">=</span><span class="st">'t2'</span>, name<span class="op">=</span><span class="st">'WebSearch'</span>, <span class="bu">input</span><span class="op">=</span><span class="bu">dict</span>(query<span class="op">=</span><span class="st">'flux'</span>))])]</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>pref <span class="op">=</span> prefix_tools(tmsgs, <span class="st">'mcp__probe__'</span>, skip<span class="op">=</span>[<span class="st">'WebSearch'</span>])</span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>test_eq([b[<span class="st">'name'</span>] <span class="cf">for</span> m <span class="kw">in</span> pref <span class="cf">for</span> b <span class="kw">in</span> m[<span class="st">'content'</span>] <span class="cf">if</span> b[<span class="st">'type'</span>]<span class="op">==</span><span class="st">'tool_use'</span>], [<span class="st">'mcp__probe__flux_meter'</span>,<span class="st">'WebSearch'</span>])</span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>test_eq(tmsgs[<span class="dv">0</span>][<span class="st">'content'</span>][<span class="dv">1</span>][<span class="st">'name'</span>], <span class="st">'flux_meter'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="cleanup" class="level2">
+<h2 class="anchored" data-anchor-id="cleanup">Cleanup</h2>
+<p>Remove the sample from <code>~/.claude/projects</code>, along with the scratch project.</p>
+<div id="90a34b53" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(sess_dir(proj))</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(proj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/fastclaude");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/fastclaude/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
