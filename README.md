@@ -7,14 +7,14 @@
 Claude Code executable. It inherits Claude CLI authentication, including OAuth and
 subscriptions, without requiring direct Anthropic API integration.
 
-Each top-level user turn starts from complete history, while its tool rounds stay live:
+Each request starts from complete history:
 
 - accepts complete, editable histories as [`aidialog.msg_parts.Msg`](https://AnswerDotAI.github.io/aidialog/msg_parts.html#msg) objects
 - compiles them into real Claude Code sessions rather than flattening them into a prompt
-- advertises tools as schemas and pauses after a complete `tool_use` batch, so the caller owns the tool loop
-- accepts the complete `ToolResult` batch through `resume`, then continues the same Claude process
+- advertises tools as schemas and ends the turn at a `tool_use`, so the caller owns the tool loop
+- continues a history ending in `ToolResult`s by deferral: the pending call is marked in the transcript and its known result served on resume
 - streams Claude output and supports native interruption
-- remains stateless between top-level user turns
+- remains stateless: each request is one process, and nothing is held between requests
 
 See [DEV.md](DEV.md) for the design record and protocol findings.
 

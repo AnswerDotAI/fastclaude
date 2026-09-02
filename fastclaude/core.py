@@ -1,6 +1,6 @@
-"""`astream` and `ClaudeRun`: stateless user turns with in-place caller-owned tool continuation through Claude Code
+"""`astream` and `ClaudeRun`: stateless completions through the installed Claude Code
 
-`astream(msgs, ...)` returns a `ClaudeRun` through the installed `claude`, using its login and subscription. Each top-level user turn starts from the complete canonical history, compiled into a native transcript under a fresh session id. Within that turn, caller-owned tools use Claude's ordinary MCP flow: iteration stops after the complete streamed tool batch, `resume()` supplies its `ToolResult`s, and the same process continues. Iteration yields raw stream-json events; `.messages` accumulates the canonical trace (signatures intact, tool names unqualified), `.paused` distinguishes a tool boundary, and `.result` holds the terminal result. `run.interrupt()` ends a turn natively, and closing interrupts, drains, escalates to terminate/kill, and removes the transcript. Runs default to an isolated XDG cache work dir; pass `cwd=` for project context and `native_tools=` for built-ins such as `WebSearch`.
+`astream(msgs, ...)` returns a `ClaudeRun`: one stateless completion through the installed `claude`, using its login and subscription. The complete history (as `aidialog.msg_parts.Msg`s) is compiled into a native transcript via `fastclaude.session` under a fresh random session id and resumed. The caller owns the tool loop: tools are schemas, a run whose reply calls one ends at the `tool_use`, and a history ending in a `ToolResult` is continued by deferral: the pending call is marked in the transcript, the known result is held, and Claude collects it on resume via `fastclaude.protocol`. Iteration yields the raw stream-json events; `.messages` accumulates the canonical trace (signatures intact, tool names unqualified) and `.result` the terminal result, so the next request can replay everything. `run.interrupt()` ends a turn natively, and closing the stream reaps the process and removes the transcript. Runs default to an isolated XDG cache work dir, so no real project's sessions or settings are touched; pass `cwd=` for project context, and `native_tools=` to enable built-ins such as `'WebSearch'`.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/core.html.md"""
 
@@ -34,15 +34,21 @@ def work_dir():
 
 # %% ../nbs/02_core.ipynb #7feb4c5d
 def compile_msgs(
-    msgs, # Complete history as `Msg`s, ending with a user prompt
+    msgs, # Complete history as `Msg`s, ending with a user prompt or with the tool results Claude asked for
 ):
-    "`(history, prompt)`: wire messages to file and the live turn's content"
+    "`(history, prompt, deferred)`: wire messages to file, the live turn's content (None for a continuation), and the pending `(tool_use, tool_result)` pair"
     msgs = listify(msgs)
     if not msgs: raise ValueError('empty message history')
     den = prefix_tools(denorm_msgs(msgs), MCP_PREFIX, skip=SERVER_TOOLS)
-    content = den[-1]['content']
-    if msgs[-1].role=='user' and any(isinstance(p, (Text,Media)) for p in msgs[-1].content): return den[:-1],content
-    raise ValueError('history must end with a user prompt')
+    lc = den[-1]['content']
+    if msgs[-1].role=='user' and any(isinstance(p, (Text,Media)) for p in msgs[-1].content): return den[:-1], lc, None
+    if den[-1]['role']=='user' and isinstance(lc, list) and lc and all(b.get('type')=='tool_result' for b in lc):
+        tus = {b['id']: b for m in den for b in (m['content'] if isinstance(m['content'], list) else []) if b.get('type')=='tool_use'}
+        pend = [tus.get(b['tool_use_id']) for b in lc]
+        if None in pend: raise ValueError('a trailing tool result answers no tool_use in the history')
+        hist = den[:-1] + ([dict(role='user', content=lc[:-1])] if len(lc)>1 else [])
+        return hist, None, (pend[-1], lc[-1])
+    raise ValueError('history must end with a user prompt or tool results')
 
 # %% ../nbs/02_core.ipynb #0c3b7a6a
 def claude_cmd(
@@ -88,10 +94,10 @@ def claude_env():
 
 # %% ../nbs/02_core.ipynb #ad501dc1
 class ClaudeRun:
-    "One Claude process whose caller-owned tool rounds pause and resume in place"
+    "One stateless completion: a fresh transcript, one claude process, streamed events, a canonical trace"
     @delegates(claude_cmd, but=['model','resume','tools','native_tools','allowed'])
     def __init__(self,
-        msgs, # Complete history as `Msg`s, ending with a user prompt
+        msgs, # Complete history as `Msg`s, ending with a user prompt or the tool results Claude asked for
         model='sonnet', # Model alias or full name
         tools=None, # Tool schemas to advertise, in either `tool_spec` form; the caller executes
         cwd=None, # Project directory for the run; the isolated `work_dir()` if None
@@ -103,25 +109,30 @@ class ClaudeRun:
         store_attr('msgs,model,tools,cwd,native_tools,allowed,env')
         self.cmd_kwargs = kwargs
         self.messages,self.result,self.proc,self.proto = [],None,None,None
-        self.paused = False
-        self._names,self._batch = {},[]
-        self._pause_ids,self._closed,self._spath,self._events = [],False,None,None
+        self._names,self._closed,self._spath,self._deferred = {},False,None,None
 
-    def __aiter__(self): return self._turn()
+    def __aiter__(self):
+        if not hasattr(self, '_it'): self._it = self._run()
+        return self._it
 
 @delegates(ClaudeRun)
 def astream(msgs, **kwargs):
-    "Start one completion; each iteration ends at a caller-owned tool batch or the terminal result"
+    "Start one stateless completion; iterate the returned `ClaudeRun` for its raw events"
     return ClaudeRun(msgs, **kwargs)
 
 # %% ../nbs/02_core.ipynb #e5bc11c4
 @patch
 async def _spawn(self:ClaudeRun):
-    "Compile and file the history, then start Claude and return the live prompt"
+    "Compile and file the history, then start Claude resuming it; returns the live turn's content (None for a continuation)"
     self.cwd = Path(self.cwd).expanduser() if self.cwd else work_dir()
-    hist,prompt = compile_msgs(self.msgs)
+    hist,prompt,deferred = compile_msgs(self.msgs)
     sid = str(uuid.uuid4())
     recs = msgs2recs(hist, key=sid, cwd=self.cwd)
+    held = None
+    if deferred:
+        tu,tr = deferred
+        recs.append(mk_deferred(tu, cwd=self.cwd))
+        held,self._deferred = tool_reply(tr.get('content',''), tr.get('is_error', False)),tu['id']
     if recs:
         save_sess(recs, sid, self.cwd)
         self._spath = sess_file(sid, self.cwd)
@@ -131,8 +142,7 @@ async def _spawn(self:ClaudeRun):
         native_tools=self.native_tools, allowed=allowed, **self.cmd_kwargs)
     self.proc = await asyncio.create_subprocess_exec(*argv, stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE, limit=2**25, cwd=self.cwd, env=dict(claude_env(), **(self.env or {})))
-    self.proto = ClaudeProto(self.proc, tools=self.tools, server=MCP_SERVER)
-    self._events = self.proto.events().__aiter__()
+    self.proto = ClaudeProto(self.proc, tools=self.tools, held=held, server=MCP_SERVER)
     return prompt
 
 # %% ../nbs/02_core.ipynb #8d5f8fe6
@@ -144,17 +154,15 @@ def _flat(c): return c if isinstance(c, str) else '\n'.join(b.get('text','') for
 
 @patch
 def _track(self:ClaudeRun, m):
-    "Fold one raw event into `.messages`, the current external tool batch, and `.result`"
+    "Fold one raw event into `.messages` and `.result`"
     t,c = m.get('type'), nested_idx(m, 'message', 'content')
     if t=='assistant' and isinstance(c, list):
         parts = norm_parts(m['message'])
         for p in parts:
-            if isinstance(p, ToolUse):
-                external = p.name.startswith(MCP_PREFIX)
-                p.name = self._names[p.id] = unqual(p.name)
-                if external: self._batch.append(p)
+            if isinstance(p, ToolUse): p.name = self._names[p.id] = unqual(p.name)
         self.messages.append(Msg('assistant', parts))
     elif t=='user' and isinstance(c, list) and c and all(b.get('type')=='tool_result' for b in c):
+        if any(b.get('tool_use_id')==self._deferred for b in c): return
         self.messages.append(Msg('tool', [ToolResult(id=b.get('tool_use_id'), name=self._names.get(b.get('tool_use_id')),
             text=_flat(b.get('content',''))) for b in c]))
     elif t=='result': self.result = m
@@ -162,97 +170,30 @@ def _track(self:ClaudeRun, m):
 # %% ../nbs/02_core.ipynb #ea5dbde9
 @patch
 async def _kick(self:ClaudeRun, prompt):
-    "Handshake, then send the live user turn"
+    "Handshake, then the live user turn; a continuation sends none"
     await self.proto.initialize()
-    await self.proto.send(dict(type='user', message=dict(role='user', content=prompt)))
-
-# %% ../nbs/02_core.ipynb #32814b40
-def _event_type(m): return nested_idx(m, 'event', 'type') if m.get('type')=='stream_event' else None
-
-# %% ../nbs/02_core.ipynb #37e06789
-@patch
-def _fold_event(self:ClaudeRun, m):
-    "Track one event and establish a pause at a complete external tool batch"
-    et = _event_type(m)
-    if et=='message_start': self._batch = []
-    self._track(m)
-    if et=='message_stop' and self._batch:
-        self.proto.broker.begin(self._batch)
-        self._pause_ids = [u.id for u in self._batch]
-        self.paused = True
-        return True
-    return False
+    if prompt is not None: await self.proto.send(dict(type='user', message=dict(role='user', content=prompt)))
 
 # %% ../nbs/02_core.ipynb #ce7d4c70
 @patch
-async def _turn(self:ClaudeRun):
-    "Stream until the next external tool batch or terminal result"
-    if self._closed or self.result is not None: return
-    if self.paused: raise RuntimeError('supply tool results with resume() before iterating again')
-    first_turn,keep,kick = self.proc is None,False,None
+async def _run(self:ClaudeRun):
+    "The event stream: spawn, kick off, yield raw events until the terminal result"
+    prompt = await self._spawn()
+    kick = asyncio.create_task(self._kick(prompt))
     try:
-        if first_turn:
-            prompt = await self._spawn()
-            kick = asyncio.create_task(self._kick(prompt))
-        while True:
-            m = await anext(self._events)
-
-            paused = self._fold_event(m)
+        async for m in self.proto.events():
+            self._track(m)
             yield m
-            if paused:
-                keep = True
-                return
-            if m.get('type')=='result': return
-    except StopAsyncIteration:
-        if self.result is None: raise RuntimeError('Claude stream ended before a result')
+            if m.get('type')=='result': break
     finally:
-        if kick:
-            kick.cancel()
-            with suppress(asyncio.CancelledError): await kick
-        if not keep and not self._closed: await self.aclose()
-
-# %% ../nbs/02_core.ipynb #7545f782
-@patch
-async def resume(self:ClaudeRun, results):
-    "Supply the complete paused tool batch; the next iteration continues the same process"
-    if not self.paused: raise RuntimeError('Claude is not waiting for tool results')
-    results = listify(results)
-    ids = [r.id for r in results]
-    if len(ids)!=len(set(ids)) or set(ids)!=set(self._pause_ids): raise ValueError(f'tool results must answer exactly {self._pause_ids}')
-    for r in results: self.proto.broker.reply(r.id, r.text or '')
-    self._pause_ids,self._batch,self.paused = [],[],False
+        kick.cancel()
+        await self.aclose()
 
 # %% ../nbs/02_core.ipynb #274024f8
 @patch
 async def interrupt(self:ClaudeRun, timeout=30):
-    "Claude's native interrupt: end the current turn; iterate again to drain the aborted tail"
-    res = await self.proto.interrupt(timeout)
-    self._pause_ids,self._batch,self.paused = [],[],False
-    return res
-
-# %% ../nbs/02_core.ipynb #d1f78540
-@patch
-async def _drain_tail(self:ClaudeRun):
-    "Fold the aborted process tail into this run"
-    async for m in read_msgs(self.proc.stdout):
-        if m.get('type')=='control_response': self.proto._resolve(m)
-        else: self._track(m)
-        if m.get('type')=='result': return
-
-# %% ../nbs/02_core.ipynb #d7eee8d6
-@patch
-async def _drain(self:ClaudeRun, timeout=10):
-    "Bound tail draining so cleanup cannot wait forever"
-    with suppress(Exception): await asyncio.wait_for(self._drain_tail(), timeout)
-
-# %% ../nbs/02_core.ipynb #6acfcc73
-@patch
-async def _abort(self:ClaudeRun, proc):
-    "Interrupt a live turn and drain its terminal tail"
-    if self.result is None and proc.stdin and not proc.stdin.is_closing():
-        t = asyncio.create_task(self._drain())
-        with suppress(Exception): await asyncio.wait_for(self.proto.interrupt(), 5)
-        await t
+    "Claude's native interrupt: end the current turn; the stream stays open to drain the aborted tail"
+    return await self.proto.interrupt(timeout)
 
 # %% ../nbs/02_core.ipynb #a64794c5
 async def _wait_process(proc, timeout=5):
@@ -274,20 +215,15 @@ async def _reap_process(proc):
 async def _cleanup(self:ClaudeRun):
     p = self.proc
     if p and p.returncode is None:
-
-        await self._abort(p)
         with suppress(Exception): p.stdin.close()
         await _reap_process(p)
-
-    if self._events:
-        with suppress(Exception): await self._events.aclose()
     if self.proto: await self.proto.aclose()
     if self._spath: Path(self._spath).unlink(missing_ok=True)
 
 # %% ../nbs/02_core.ipynb #9acc7b5c
 @patch
 async def aclose(self:ClaudeRun):
-    "Interrupt if mid-turn, drain, close, escalate, and remove the transcript; idempotent and cancellation-shielded"
+    "Close stdin, reap the process, and remove the transcript; idempotent and cancellation-shielded"
     if self._closed: return
     self._closed = True
     await asyncio.shield(asyncio.create_task(self._cleanup()))
