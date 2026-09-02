@@ -573,7 +573,7 @@ A live native interrupt was acknowledged and produced the aborted partial messag
 
 ### Isolated headless spawn (2026-08-27)
 
-The working recipe for spawning `claude -p` with no user configuration loaded, external MCP tools only, and subscription auth. The prompt argument goes before the flags (`--allowedTools` consumes following arguments):
+The working recipe for spawning `claude -p` with no user configuration loaded, external MCP tools only, and a bearer credential (not subscription billing: see the findings below). The prompt argument goes before the flags (`--allowedTools` consumes following arguments):
 
 ```bash
 ANTHROPIC_AUTH_TOKEN=$CLAUDE_OAUTH_TOKEN claude -p "<prompt>" --bare \
@@ -584,7 +584,8 @@ ANTHROPIC_AUTH_TOKEN=$CLAUDE_OAUTH_TOKEN claude -p "<prompt>" --bare \
 Findings:
 
 - Without isolation the spawned claude loads the user's hooks, skills, and CLAUDE.md, and acts on them before the task. `--bare` prevents this; `--setting-sources ""` is the lighter variant that keeps the stored login.
-- `--bare` does not use the stored login, and does not read `CLAUDE_CODE_OAUTH_TOKEN`. It does read `ANTHROPIC_AUTH_TOKEN`, sent as the Bearer header, which is what a subscription OAuth token (from `claude setup-token`) needs.
+- `--bare` does not use the stored login, and does not read `CLAUDE_CODE_OAUTH_TOKEN`. It does read `ANTHROPIC_AUTH_TOKEN`, sent as the Bearer header, so the recipe above runs. But that variable is not a subscription path, and the recipe is not the one to use for subscription work. See the next finding.
+- Which variable carries a subscription token matters for billing. The [authentication docs](https://code.claude.com/docs/en/authentication) describe `CLAUDE_CODE_OAUTH_TOKEN` as the credential that "authenticates with your Claude subscription", and `ANTHROPIC_AUTH_TOKEN` as a gateway credential: "sent as the `Authorization: Bearer` header. Use this when routing through an LLM gateway or proxy that authenticates with bearer tokens rather than Anthropic API keys." The docs class it with `ANTHROPIC_API_KEY` as an environment credential, and say nothing about it reaching a subscription. A field report ([hermes-agent #40014](https://github.com/NousResearch/hermes-agent/issues/40014)) of an `sk-ant-oat` token sent as a bearer to the Messages API saw the usage billed to extra-usage credits rather than plan quota, and [claude-code #28091](https://github.com/anthropics/claude-code/issues/28091) records the Messages API rejecting such tokens from third parties since February 2026. So a run on someone's subscription passes the token as `CLAUDE_CODE_OAUTH_TOKEN`, which rules out `--bare`. `ClaudeRun`'s `env` argument is how a host sets it per run; `claude_cmd` never passes `--bare`, and `setting_sources=()` gives the isolation it would have given.
 
 ## Possible future option: deferred historical tool results
 
