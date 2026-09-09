@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="astream and ClaudeRun: stateless completions through the installed Claude Code">
+
+<title>core – fastclaude</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ff355f32169432f12e3b54c979a24ba.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="core – fastclaude">
+<meta property="og:description" content="astream and ClaudeRun: stateless completions through the installed Claude Code">
+<meta property="og:site_name" content="fastclaude">
+<meta name="twitter:title" content="core – fastclaude">
+<meta name="twitter:description" content="astream and ClaudeRun: stateless completions through the installed Claude Code">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">fastclaude</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">core</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fastclaude</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./session.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">session</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./protocol.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">protocol</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-work-dir" id="toc-the-work-dir" class="nav-link active" data-scroll-target="#the-work-dir">The work dir</a></li>
+  <li><a href="#compiling-history" id="toc-compiling-history" class="nav-link" data-scroll-target="#compiling-history">Compiling history</a></li>
+  <li><a href="#the-command-and-environment" id="toc-the-command-and-environment" class="nav-link" data-scroll-target="#the-command-and-environment">The command and environment</a></li>
+  <li><a href="#the-run" id="toc-the-run" class="nav-link" data-scroll-target="#the-run">The run</a></li>
+  <li><a href="#a-scripted-run" id="toc-a-scripted-run" class="nav-link" data-scroll-target="#a-scripted-run">A scripted run</a></li>
+  <li><a href="#live-runs" id="toc-live-runs" class="nav-link" data-scroll-target="#live-runs">Live runs</a></li>
+  <li><a href="#cleanup" id="toc-cleanup" class="nav-link" data-scroll-target="#cleanup">Cleanup</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/fastclaude/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="core.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">core</h1>
+</div>
+
+<div>
+  <div class="description">
+    <code>astream</code> and <code>ClaudeRun</code>: stateless completions through the installed Claude Code
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p><code>astream(msgs, ...)</code> creates a <a href="https://AnswerDotAI.github.io/fastclaude/core.html#clauderun"><code>ClaudeRun</code></a> for one stateless completion through your installed <code>claude</code>. It uses Claude Code’s login and subscription. Supply the complete conversation as <a href="https://AnswerDotAI.github.io/aidialog/msg_parts.html#msg"><code>aidialog.msg_parts.Msg</code></a> objects on every request. FastClaude writes the history as a native transcript with <code>fastclaude.session</code> and starts a fresh process to resume it.</p>
+<p>Your application executes the tools it supplies. When Claude requests one, the run ends with a <code>ToolUse</code>. Execute the tool and append its <code>ToolResult</code> to the history for the next request. FastClaude marks the pending call in the transcript. Its <code>fastclaude.protocol</code> bridge returns your result when Claude resumes that call.</p>
+<p>Iterate the run for raw stream-json events. <code>run.messages</code> contains the generated <code>Msg</code> trace with thinking signatures intact and your original tool names. <code>run.result</code> contains the terminal result. Append the trace to your history for the next request.</p>
+<p>Use <code>run.interrupt()</code> to end the current turn. Close the run to stop its process and remove its temporary transcript. Runs use a dedicated XDG cache work directory by default. Pass <code>cwd=</code> to use a project’s context or <code>native_tools=</code> to enable Claude Code tools such as <code>WebSearch</code>.</p>
+<div id="dbdc69a3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.529339+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.530331+00:00&quot;,&quot;total&quot;:0.0009945310000034624}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> stat, sys, tempfile, textwrap</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="the-work-dir" class="level2">
+<h2 class="anchored" data-anchor-id="the-work-dir">The work dir</h2>
+<p>Claude Code looks for a resumed session under <code>~/.claude/projects</code>, in a folder derived from the process’s working directory. FastClaude must write its transcript there for <code>--resume</code> to find it. The working directory also determines which project settings and <code>CLAUDE.md</code> Claude Code reads.</p>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#work_dir"><code>work_dir()</code></a> creates a dedicated <code>fastclaude</code> directory under the XDG cache directory. All default runs share it. They don’t inherit the host process’s current project or add transcripts to that project’s session list. This separates the runs from real projects without isolating your Claude Code login or user settings. Pass <code>cwd=</code> when you want a particular project’s context.</p>
+<div id="63785d34" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.531536+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.608702+00:00&quot;,&quot;total&quot;:0.07716976500000783}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L35" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="work_dir" class="level3">
+<h3 class="anchored" data-anchor-id="work_dir">work_dir</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> work_dir():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Create and return the shared FastClaude work directory under the XDG cache directory</em></p>
+</section>
+</div>
+</section>
+<section id="compiling-history" class="level2">
+<h2 class="anchored" data-anchor-id="compiling-history">Compiling history</h2>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#compile_msgs"><code>compile_msgs</code></a> prepares the history for a new process. You can edit, hide, rewind, or replace earlier messages before each request. <code>denorm_msgs</code> converts the supplied <code>Msg</code> objects to Anthropic-style messages. <a href="https://AnswerDotAI.github.io/fastclaude/session.html#prefix_tools"><code>prefix_tools</code></a> adds <code>mcp__fastclaude__</code> to external tool names. It leaves existing <code>mcp__</code> names and the native <code>WebSearch</code> and <code>WebFetch</code> names unchanged.</p>
+<p>The final message determines how the run starts. A user message with text or media supplies the live prompt. Everything before it becomes the transcript. A final tool result instead asks Claude to continue its pending call. FastClaude resumes that call without sending a new prompt.</p>
+<p>Claude Code re-invokes only the last deferred call. For multiple trailing results, <a href="https://AnswerDotAI.github.io/fastclaude/core.html#compile_msgs"><code>compile_msgs</code></a> includes all but the last in the history. It returns the last call and result separately for <code>_spawn</code> to prepare the continuation.</p>
+<div id="c7681b1f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.611388+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.615857+00:00&quot;,&quot;total&quot;:0.00447331899999881}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L42" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="compile_msgs" class="level3">
+<h3 class="anchored" data-anchor-id="compile_msgs">compile_msgs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compile_msgs(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="co"># Complete history as `Msg`s, ending with a user prompt or with the tool results Claude asked for</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Return <code>(history, prompt, deferred)</code> for a new run.</em></p>
+<p><code>history</code> contains wire messages for the transcript. <code>prompt</code> is the live turn’s content, or None for a continuation. <code>deferred</code> is the pending <code>(tool_use, tool_result)</code> pair, or None for a live prompt.</p>
+</section>
+</div>
+<div id="4a76adda" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>prior <span class="op">=</span> Msg(<span class="st">'user'</span>, [Text(<span class="st">'Measure the flux please.'</span>)])</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>call <span class="op">=</span> Msg(<span class="st">'assistant'</span>, [Text(<span class="st">'Checking.'</span>), ToolUse(<span class="bu">id</span><span class="op">=</span><span class="st">'t1'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, arguments<span class="op">=</span>{})])</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> Msg(<span class="st">'tool'</span>, [ToolResult(<span class="bu">id</span><span class="op">=</span><span class="st">'t1'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, text<span class="op">=</span><span class="st">'flux: 41.7 kf'</span>)])</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> Msg(<span class="st">'user'</span>, [Text(<span class="st">'And in gauss?'</span>)])</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> [prior,call,result,prompt]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>h</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[Msg(role='user', content=[Text(raw=None, cache_control=None, text='Measure the flux please.', citations=None)], raw=None),
+ Msg(role='assistant', content=[Text(raw=None, cache_control=None, text='Checking.', citations=None), ToolUse(raw=None, cache_control=None, id='t1', name='flux_meter', arguments={}, server=False, text=None)], raw=None),
+ Msg(role='tool', content=[ToolResult(raw=None, cache_control=None, id='t1', name='flux_meter', arguments={}, server=False, text='flux: 41.7 kf')], raw=None),
+ Msg(role='user', content=[Text(raw=None, cache_control=None, text='And in gauss?', citations=None)], raw=None)]</code></pre>
+</div>
+</div>
+<p><code>compile_msgs(h)</code> returns the first three messages as history and the last user’s content as the live prompt. The history uses the qualified external tool name. This function prepares messages without writing a transcript.</p>
+<div id="2be72674" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>hist,prompt,deferred <span class="op">=</span> compile_msgs(h)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>test_eq((<span class="bu">len</span>(hist), deferred), (<span class="dv">3</span>, <span class="va">None</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>test_eq(hist[<span class="dv">1</span>][<span class="st">'content'</span>][<span class="dv">1</span>][<span class="st">'name'</span>], <span class="st">'mcp__fastclaude__flux_meter'</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>test_eq(prompt, [<span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'text'</span>, text<span class="op">=</span><span class="st">'And in gauss?'</span>)])</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>hist[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'role': 'assistant',
+ 'content': [{'type': 'text', 'text': 'Checking.'},
+  {'type': 'tool_use',
+   'id': 't1',
+   'name': 'mcp__fastclaude__flux_meter',
+   'input': {}}]}</code></pre>
+</div>
+</div>
+<p>Ending the same history at its tool result requests a continuation. <code>compile_msgs(h[:3])</code> returns no live prompt. The separate <code>(tool_use, tool_result)</code> pair identifies the pending call by its qualified name. <code>_spawn</code> will mark that call with <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_deferred"><code>mk_deferred</code></a> and give the result to the bridge.</p>
+<div id="ca9c2b0f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>chist,cprompt,(ctu,ctr) <span class="op">=</span> compile_msgs(h[:<span class="dv">3</span>])</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>test_eq((<span class="bu">len</span>(chist), cprompt), (<span class="dv">2</span>, <span class="va">None</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>test_eq((ctu[<span class="st">'id'</span>], ctu[<span class="st">'name'</span>]), (<span class="st">'t1'</span>, <span class="st">'mcp__fastclaude__flux_meter'</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ctr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'type': 'tool_result', 'tool_use_id': 't1', 'content': 'flux: 41.7 kf'}</code></pre>
+</div>
+</div>
+<p>In this example, Claude requested two measurements. The history contains the result for <code>a</code>. The continuation will supply the result for <code>b</code> when Claude re-invokes that call.</p>
+<div id="445cc238" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>h2 <span class="op">=</span> h[:<span class="dv">1</span>] <span class="op">+</span> [Msg(<span class="st">'assistant'</span>, [ToolUse(<span class="bu">id</span><span class="op">=</span><span class="st">'a'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, arguments<span class="op">=</span>{}), ToolUse(<span class="bu">id</span><span class="op">=</span><span class="st">'b'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, arguments<span class="op">=</span><span class="bu">dict</span>(unit<span class="op">=</span><span class="st">'gauss'</span>))]),</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    Msg(<span class="st">'tool'</span>, [ToolResult(<span class="bu">id</span><span class="op">=</span><span class="st">'a'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, text<span class="op">=</span><span class="st">'flux: 41.7 kf'</span>), ToolResult(<span class="bu">id</span><span class="op">=</span><span class="st">'b'</span>, name<span class="op">=</span><span class="st">'flux_meter'</span>, text<span class="op">=</span><span class="st">'flux: 41.7 gauss'</span>)])]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>h2hist,_,h2d <span class="op">=</span> compile_msgs(h2)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>test_eq(h2hist[<span class="op">-</span><span class="dv">1</span>][<span class="st">'content'</span>][<span class="dv">0</span>][<span class="st">'tool_use_id'</span>], <span class="st">'a'</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>test_eq(h2d[<span class="dv">0</span>][<span class="st">'id'</span>], <span class="st">'b'</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>h2hist[<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'role': 'user',
+ 'content': [{'type': 'tool_result',
+   'tool_use_id': 'a',
+   'content': 'flux: 41.7 kf'}]}</code></pre>
+</div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#compile_msgs"><code>compile_msgs</code></a> raises <code>ValueError</code> for an empty history, an invalid final message, or a trailing result with no matching <code>tool_use</code>. These checks run before FastClaude starts a process.</p>
+<div id="f92de5f6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> expect_fail(<span class="pp">ValueError</span>, contains<span class="op">=</span><span class="st">'user prompt or tool results'</span>): compile_msgs(h[:<span class="dv">2</span>])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> expect_fail(<span class="pp">ValueError</span>, contains<span class="op">=</span><span class="st">'no tool_use'</span>): compile_msgs(h[:<span class="dv">1</span>] <span class="op">+</span> [Msg(<span class="st">'tool'</span>, [ToolResult(<span class="bu">id</span><span class="op">=</span><span class="st">'zz'</span>, name<span class="op">=</span><span class="st">'f'</span>, text<span class="op">=</span><span class="st">'x'</span>)])])</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> expect_fail(<span class="pp">ValueError</span>, contains<span class="op">=</span><span class="st">'empty'</span>): compile_msgs([])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="the-command-and-environment" class="level2">
+<h2 class="anchored" data-anchor-id="the-command-and-environment">The command and environment</h2>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#claude_cmd"><code>claude_cmd</code></a> uses your installed <code>claude</code> and preserves its config and login. It does not change <code>CLAUDE_CONFIG_DIR</code>. Isolating that directory would also isolate the login needed for subscription access.</p>
+<p>The command always includes <code>--strict-mcp-config</code>. Claude Code cannot use unrelated MCP servers from your configuration, even when the run supplies no tools. Pass <code>mcp_config</code> to add external servers, such as a stdio process. When you supply tool schemas, the command adds a private SDK server entry to <code>--mcp-config</code> for FastClaude’s bridge.</p>
+<p>Built-in tools are off by default. <code>--tools</code> always contains an explicit list from <code>native_tools</code>, including an empty list when you enable none. <code>setting_sources=None</code> keeps the CLI’s default settings sources. Use <code>['project']</code> for project settings alone or <code>()</code> to load none.</p>
+<p><code>--resume=&lt;id&gt;</code> uses an equals sign. A session id beginning with a dash cannot become a separate command option.</p>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#claude_env"><code>claude_env</code></a> copies the parent environment with two changes. It empties <code>ANTHROPIC_API_KEY</code> to prevent billing through an inherited API key. It removes <code>CLAUDECODE</code> to avoid the CLI’s nested-session check. <code>ClaudeRun(env=...)</code> can override these defaults.</p>
+<div id="77088dc7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.621322+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.624013+00:00&quot;,&quot;total&quot;:0.0026934869999877264}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L99" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="claude_env" class="level3">
+<h3 class="anchored" data-anchor-id="claude_env">claude_env</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> claude_env():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Copy the environment with an empty <code>ANTHROPIC_API_KEY</code> and no <code>CLAUDECODE</code></em></p>
+</section>
+</div>
+<div id="0870fa8b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.624144+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.629126+00:00&quot;,&quot;total&quot;:0.0049848580000002585}}" data-execution_count="9">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L64" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="claude_cmd" class="level3">
+<h3 class="anchored" data-anchor-id="claude_cmd">claude_cmd</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> claude_cmd(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    model:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Model alias or full name; None uses the user's default</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    resume:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Session id to resume, i.e. the transcript just written</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># System prompt; None keeps Claude Code's own</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    tools:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Offer the private SDK MCP server?</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    native_tools:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Built-in Claude Code tools to enable, e.g. 'WebSearch'</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    allowed:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># `--allowedTools` entries, e.g. qualified callable names</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    append_system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text appended to Claude Code's own system prompt, which stays</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    setting_sources:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    mcp_config:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Extra MCP server entries, e.g. `dict(clikernel=dict(type='stdio', command=...))`</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    max_turns:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Bound on agent turns; None is unbounded</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    max_budget:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Max USD for the run; None is unbounded</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    permission_mode:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># e.g. 'bypassPermissions'; None keeps the CLI default</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    thinking:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># 'adaptive' or 'disabled'; None keeps the CLI default</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    effort:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Thinking effort: 'low', 'medium', or 'high'</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    claude_path:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Explicit claude executable; found on PATH if None</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Build argv for one headless stream-json Claude Code run</em></p>
+</section>
+</div>
+<div id="1250700f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> claude_cmd(<span class="st">'sonnet'</span>, resume<span class="op">=</span><span class="st">'-abc'</span>, tools<span class="op">=</span><span class="va">True</span>, allowed<span class="op">=</span>[<span class="st">'mcp__fastclaude__flux_meter'</span>])</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>test(<span class="st">'--resume=-abc'</span>, c, in_)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>test_eq(c[c.index(<span class="st">'--tools'</span>)<span class="op">+</span><span class="dv">1</span>], <span class="st">''</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>test(<span class="st">'--strict-mcp-config'</span>, c, in_)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>test(<span class="st">'--strict-mcp-config'</span>, claude_cmd(<span class="st">'sonnet'</span>), in_)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>test_eq(json.loads(c[c.index(<span class="st">'--mcp-config'</span>)<span class="op">+</span><span class="dv">1</span>]), <span class="bu">dict</span>(mcpServers<span class="op">=</span><span class="bu">dict</span>(fastclaude<span class="op">=</span><span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'sdk'</span>, name<span class="op">=</span><span class="st">'fastclaude'</span>))))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> claude_env()</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>test_eq(env[<span class="st">'ANTHROPIC_API_KEY'</span>], <span class="st">''</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'CLAUDECODE'</span> <span class="kw">not</span> <span class="kw">in</span> env</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>c[<span class="dv">1</span>:]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>['--output-format',
+ 'stream-json',
+ '--input-format',
+ 'stream-json',
+ '--verbose',
+ '--include-partial-messages',
+ '--model',
+ 'sonnet',
+ '--resume=-abc',
+ '--mcp-config',
+ '{"mcpServers": {"fastclaude": {"type": "sdk", "name": "fastclaude"}}}',
+ '--strict-mcp-config',
+ '--tools',
+ '',
+ '--allowedTools',
+ 'mcp__fastclaude__flux_meter']</code></pre>
+</div>
+</div>
+<p>Optional arguments add flags only when you supply a value. Here we add an external MCP server, select project settings, and limit the run to eight agent turns.</p>
+<div id="ab1b58ca" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>c2 <span class="op">=</span> claude_cmd(mcp_config<span class="op">=</span><span class="bu">dict</span>(clikernel<span class="op">=</span><span class="bu">dict</span>(<span class="bu">type</span><span class="op">=</span><span class="st">'stdio'</span>, command<span class="op">=</span><span class="st">'clikernel-mcp'</span>)), setting_sources<span class="op">=</span>[<span class="st">'project'</span>], max_turns<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>test_eq(json.loads(c2[c2.index(<span class="st">'--mcp-config'</span>)<span class="op">+</span><span class="dv">1</span>])[<span class="st">'mcpServers'</span>][<span class="st">'clikernel'</span>][<span class="st">'type'</span>], <span class="st">'stdio'</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>test(<span class="st">'--setting-sources=project'</span>, c2, in_)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>test_eq(c2[c2.index(<span class="st">'--max-turns'</span>)<span class="op">+</span><span class="dv">1</span>], <span class="st">'8'</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'--max-turns'</span> <span class="kw">not</span> <span class="kw">in</span> claude_cmd()</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>c2[<span class="dv">1</span>:]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>['--output-format',
+ 'stream-json',
+ '--input-format',
+ 'stream-json',
+ '--verbose',
+ '--include-partial-messages',
+ '--mcp-config',
+ '{"mcpServers": {"clikernel": {"type": "stdio", "command": "clikernel-mcp"}}}',
+ '--strict-mcp-config',
+ '--tools',
+ '',
+ '--setting-sources=project',
+ '--max-turns',
+ '8']</code></pre>
+</div>
+</div>
+</section>
+<section id="the-run" class="level2">
+<h2 class="anchored" data-anchor-id="the-run">The run</h2>
+<p>A <a href="https://AnswerDotAI.github.io/fastclaude/core.html#clauderun"><code>ClaudeRun</code></a> starts when you iterate it. It prepares the transcript, starts Claude Code, and completes the control handshake before sending any live prompt. A continuation resumes from the transcript without a prompt. Iteration yields every non-control event unchanged.</p>
+<p>Each run handles one completion. It does not keep a process for the next request. When Claude asks for an advertised tool, the run ends before execution. Your application executes the <code>ToolUse</code> from <code>run.messages</code> and supplies the result in a new request.</p>
+<div id="35b89817" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.632757+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.640108+00:00&quot;,&quot;total&quot;:0.007353140999953212}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L129" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="astream" class="level3">
+<h3 class="anchored" data-anchor-id="astream">astream</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> astream(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="op">*</span>, model:<span class="bu">str</span><span class="op">=</span><span class="st">'sonnet'</span>, <span class="co"># Model alias or full name</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    tools:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Tool schemas to advertise, in either `tool_spec` form; the caller executes</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory for the run; the shared `work_dir()` if None</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    native_tools:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Built-in Claude Code tools to enable, e.g. 'WebSearch'</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    allowed:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Extra `--allowedTools` entries beyond the advertised schemas</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    env:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Extra child environment variables, merged over `claude_env()`</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># System prompt; None keeps Claude Code's own</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    append_system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text appended to Claude Code's own system prompt, which stays</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    setting_sources:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    mcp_config:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Extra MCP server entries, e.g. `dict(clikernel=dict(type='stdio', command=...))`</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    max_turns:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Bound on agent turns; None is unbounded</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    max_budget:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Max USD for the run; None is unbounded</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    permission_mode:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># e.g. 'bypassPermissions'; None keeps the CLI default</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    thinking:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># 'adaptive' or 'disabled'; None keeps the CLI default</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    effort:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Thinking effort: 'low', 'medium', or 'high'</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    claude_path:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Explicit claude executable; found on PATH if None</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Create a <a href="https://AnswerDotAI.github.io/fastclaude/core.html#clauderun"><code>ClaudeRun</code></a> for one stateless completion and iterate it for raw events</em></p>
+</section>
+</div>
+<div id="65b5fca3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.640198+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.646087+00:00&quot;,&quot;total&quot;:0.005891243000007762}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L106" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="clauderun" class="level3">
+<h3 class="anchored" data-anchor-id="clauderun">ClaudeRun</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ClaudeRun(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    msgs, <span class="co"># Complete history as `Msg`s, ending with a user prompt or the tool results Claude asked for</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'sonnet'</span>, <span class="co"># Model alias or full name</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    tools:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Tool schemas to advertise, in either `tool_spec` form; the caller executes</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    cwd:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Project directory for the run; the shared `work_dir()` if None</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    native_tools:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Built-in Claude Code tools to enable, e.g. 'WebSearch'</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    allowed:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Extra `--allowedTools` entries beyond the advertised schemas</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    env:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Extra child environment variables, merged over `claude_env()`</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>, system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># System prompt; None keeps Claude Code's own</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    append_system:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text appended to Claude Code's own system prompt, which stays</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    setting_sources:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    mcp_config:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Extra MCP server entries, e.g. `dict(clikernel=dict(type='stdio', command=...))`</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    max_turns:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Bound on agent turns; None is unbounded</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    max_budget:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Max USD for the run; None is unbounded</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    permission_mode:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># e.g. 'bypassPermissions'; None keeps the CLI default</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    thinking:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># 'adaptive' or 'disabled'; None keeps the CLI default</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    effort:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Thinking effort: 'low', 'medium', or 'high'</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    claude_path:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Explicit claude executable; found on PATH if None</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Manage one Claude Code process for a stateless completion with streamed events and a reusable message trace</em></p>
+</section>
+</div>
+<p><code>_spawn</code> writes the history with a fresh random session id. Concurrent requests can use identical histories without sharing a transcript. Prompt caching depends on the request content, not reuse of the session id.</p>
+<p>For a continuation, <code>_spawn</code> adds a <a href="https://AnswerDotAI.github.io/fastclaude/session.html#mk_deferred"><code>mk_deferred</code></a> record for the pending call. It converts your result with <a href="https://AnswerDotAI.github.io/fastclaude/protocol.html#tool_reply"><code>tool_reply</code></a> and gives that reply to <a href="https://AnswerDotAI.github.io/fastclaude/protocol.html#claudeproto"><code>ClaudeProto</code></a> as <code>held</code>. Claude Code will request it on resume. A first request containing only a user prompt needs no transcript and no <code>--resume</code> option.</p>
+<p>The subprocess uses piped standard input and output. <code>_spawn</code> raises <code>FileNotFoundError</code> if it cannot find the executable and removes any transcript it wrote.</p>
+<p><code>_track</code> builds <code>run.messages</code> from full message events, not partial streaming updates. Each full <code>assistant</code> event becomes a <code>Msg</code> through <code>norm_parts</code>. These events contain individual content blocks, including signed thinking. <a href="https://AnswerDotAI.github.io/fastclaude/core.html#unqual"><code>unqual</code></a> removes the <code>mcp__fastclaude__</code> prefix from tool names in the trace.</p>
+<p>A <code>user</code> event containing tool results becomes a <code>Msg</code> with role <code>tool</code>. On a continuation, <code>_track</code> skips the event containing the result you supplied. Your history already contains it. Native tool results, such as those from <code>WebSearch</code>, still enter the trace. <code>_track</code> stores the terminal <code>result</code> event in <code>run.result</code>.</p>
+<p>None of this changes the raw events that iteration yields.</p>
+<div id="5576b749" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.652306+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.655660+00:00&quot;,&quot;total&quot;:0.00335699800001521}}" data-execution_count="15">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L165" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="unqual" class="level3">
+<h3 class="anchored" data-anchor-id="unqual">unqual</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> unqual(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    nm</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Remove the <code>mcp__fastclaude__</code> prefix from <code>nm</code> when present</em></p>
+</section>
+</div>
+<p><code>_kick</code> waits for the initialization handshake before sending the live prompt. <code>_run</code> starts it as a separate task while reading protocol events. That reader must be active to handle the handshake response. A continuation completes the handshake without sending a user message.</p>
+<p><code>_run</code> updates the trace before yielding each event. After yielding the terminal result, it ends iteration and calls <code>aclose</code>. Its <code>finally</code> block also runs on errors, cancellation during iteration, or explicit closure of the iterator. If you stop consuming early with <code>break</code>, call <code>await run.aclose()</code> rather than relying on generator finalization.</p>
+<p><code>interrupt</code> sends Claude Code’s native control request to end the current turn. Keep consuming the event stream to receive the remaining output and terminal result.</p>
+<div id="692a0d91" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.659428+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.662952+00:00&quot;,&quot;total&quot;:0.0035285059999523583}}" data-execution_count="19">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L210" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="clauderun.interrupt" class="level3">
+<h3 class="anchored" data-anchor-id="clauderun.interrupt">ClaudeRun.interrupt</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> interrupt(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    timeout:<span class="bu">int</span><span class="op">=</span><span class="dv">30</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Ask Claude Code to end the turn while keeping the stream open for remaining events</em></p>
+</section>
+</div>
+<p>Hosts often handle Ctrl-C by cancelling the task that consumes the run. Cleanup must still stop the child process and remove the temporary transcript. It does not read more output or finish the trace. Use <code>interrupt</code> while continuing iteration when you need the final events.</p>
+<p><code>_cleanup</code> closes standard input to ask Claude Code to exit. It then calls <a href="https://AnswerDotAI.github.io/fastclaude/core.html#_reap_process"><code>_reap_process</code></a> to wait for the process and stop it forcibly if necessary.</p>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#_wait_process"><code>_wait_process</code></a> returns <code>True</code> if the process exits within the timeout and <code>False</code> otherwise. Its default timeout is five seconds.</p>
+<p><a href="https://AnswerDotAI.github.io/fastclaude/core.html#_reap_process"><code>_reap_process</code></a> waits up to five seconds for normal exit, then sends terminate and waits another five seconds. If the process still hasn’t exited, it sends kill and waits without a timeout. It returns as soon as a wait succeeds.</p>
+<p>After stopping the process, <code>_cleanup</code> cancels protocol work and removes the exact transcript this run wrote. It does not delete other sessions.</p>
+<p><code>aclose</code> starts cleanup once, even if you call it repeatedly. <code>asyncio.shield</code> lets cleanup continue if the awaiting task receives another cancellation. That task can stop waiting before cleanup finishes.</p>
+<div id="4b2812bb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-09T12:07:07.667771+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-09T12:07:07.671227+00:00&quot;,&quot;total&quot;:0.0034580850000338614}}" data-execution_count="24">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/fastclaude/blob/main/fastclaude/core.py#L241" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="clauderun.aclose" class="level3">
+<h3 class="anchored" data-anchor-id="clauderun.aclose">ClaudeRun.aclose</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> aclose():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Close stdin, stop the process, and remove the transcript.</em></p>
+<p>Start cleanup once and shield it from cancellation.</p>
+</section>
+</div>
+</section>
+<section id="a-scripted-run" class="level2">
+<h2 class="anchored" data-anchor-id="a-scripted-run">A scripted run</h2>
+<p>This test runs FastClaude against a script instead of a model. The script acknowledges control requests, echoes the user prompt as an assistant message, and emits a terminal result. It exercises handshake ordering, trace collection, completion, and transcript removal without spending tokens.</p>
+<div id="0dfb0c5e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># chkstyle: ignore-node</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>fake_src <span class="op">=</span> textwrap.dedent(<span class="st">'''</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="st">    #!/usr/bin/env python3</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="st">    import sys, json</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="st">    def w(o): sys.stdout.write(json.dumps(o)+'</span><span class="ch">\\</span><span class="st">n'); sys.stdout.flush()</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="st">    for line in sys.stdin:</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="st">        m = json.loads(line)</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="st">        if m.get('type')=='control_request':</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="st">            w(dict(type='control_response', response=dict(subtype='success', request_id=m['request_id'], response=</span><span class="sc">{}</span><span class="st">)))</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="st">        elif m.get('type')=='user':</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="st">            c = m['message']['content']</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="st">            txt = 'echo: '+(c if isinstance(c, str) else c[0].get('text',''))</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="st">            w(dict(type='assistant', message=dict(role='assistant', content=[dict(type='text', text=txt)])))</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="st">            w(dict(type='result', subtype='success', result=txt))</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="st">    '''</span>).strip()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We make the script executable and pass its path as <code>claude_path</code>. FastClaude still starts a real subprocess and communicates through pipes. The script gives repeatable results without authentication or a model connection.</p>
+<div id="3a9d96e7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fake_cc <span class="op">=</span> Path(tempfile.mkdtemp())<span class="op">/</span><span class="st">'claude'</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>fake_cc.write_text(fake_src<span class="op">+</span><span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>fake_cc.chmod(fake_cc.stat().st_mode <span class="op">|</span> stat.S_IXUSR)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="d6dd9274" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>scratch <span class="op">=</span> Path(tempfile.mkdtemp())</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>run <span class="op">=</span> astream(h, claude_path<span class="op">=</span>fake_cc, cwd<span class="op">=</span>scratch)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>got <span class="op">=</span> [m <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> run]</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>test_eq(run.result[<span class="st">'result'</span>], <span class="st">'echo: And in gauss?'</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>test_eq([m.role <span class="cf">for</span> m <span class="kw">in</span> run.messages], [<span class="st">'assistant'</span>])</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>test_eq(run.messages[<span class="dv">0</span>].content[<span class="dv">0</span>].text, <span class="st">'echo: And in gauss?'</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>test_eq(run._spath.exists(), <span class="va">False</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> expect_fail(<span class="pp">FileNotFoundError</span>, contains<span class="op">=</span><span class="st">'not found'</span>): [m <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> astream(h, claude_path<span class="op">=</span>scratch<span class="op">/</span><span class="st">'missing'</span>, cwd<span class="op">=</span>scratch)]</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>[m[<span class="st">'type'</span>] <span class="cf">for</span> m <span class="kw">in</span> got]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>['assistant', 'result']</code></pre>
+</div>
+</div>
+</section>
+<section id="live-runs" class="level2">
+<h2 class="anchored" data-anchor-id="live-runs">Live runs</h2>
+<p>The following examples use your authenticated Claude Code CLI and spend tokens. Their <code>eval: false</code> directives exclude them from automated tests.</p>
+<p>We’ll ask Claude to use <code>flux_meter</code>. Passing this function in <code>tools</code> advertises its schema. FastClaude never calls the function body.</p>
+<div id="4899380d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> flux_meter(unit:<span class="bu">str</span><span class="op">=</span><span class="st">'kf'</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Read the flux."</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ss">f'flux: 41.7 </span><span class="sc">{</span>unit<span class="sc">}</span><span class="ss">'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>When Claude requests <code>flux_meter</code>, the <code>PreToolUse</code> hook defers the call and ends the turn. We consume the run until its process exits. No tool has executed yet.</p>
+<div id="38f9dd36" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>lmsgs <span class="op">=</span> [Msg(<span class="st">'user'</span>, [Text(<span class="st">'Use the flux_meter tool with unit="gauss", then reply with exactly the tool output.'</span>)])]</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>lrun <span class="op">=</span> astream(lmsgs, model<span class="op">=</span><span class="st">'claude-sonnet-5'</span>, tools<span class="op">=</span>[flux_meter])</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>levs <span class="op">=</span> [m <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> lrun]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>L(m.get(<span class="st">'type'</span>) <span class="cf">for</span> m <span class="kw">in</span> levs).unique()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>lrun.messages</code> ends with the pending <code>ToolUse</code>, using the original name <code>flux_meter</code>. The run has a successful terminal result and no running process.</p>
+<div id="836efcf1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>ltu <span class="op">=</span> lrun.messages[<span class="op">-</span><span class="dv">1</span>].content[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>test_eq((<span class="bu">type</span>(ltu), ltu.name, ltu.arguments), (ToolUse, <span class="st">'flux_meter'</span>, <span class="bu">dict</span>(unit<span class="op">=</span><span class="st">'gauss'</span>)))</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>test_eq(lrun.result[<span class="st">'subtype'</span>], <span class="st">'success'</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>[(m.role, [<span class="bu">type</span>(p).<span class="va">__name__</span> <span class="cf">for</span> p <span class="kw">in</span> m.content]) <span class="cf">for</span> m <span class="kw">in</span> lrun.messages]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Execute the requested call in your application, then append the trace and its <code>ToolResult</code> to the history. Pass that history to <a href="https://AnswerDotAI.github.io/fastclaude/core.html#astream"><code>astream</code></a> for the continuation.</p>
+<p>Claude Code resumes the pending call and collects the result from the bridge without another live prompt. FastClaude does not execute the function again. The new trace contains Claude’s continuation without duplicating the result you supplied.</p>
+<div id="6543b682" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="cf">await</span> flux_meter(<span class="op">**</span>ltu.arguments)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>cmsgs <span class="op">=</span> lmsgs <span class="op">+</span> lrun.messages <span class="op">+</span> [Msg(<span class="st">'tool'</span>, [ToolResult(<span class="bu">id</span><span class="op">=</span>ltu.<span class="bu">id</span>, name<span class="op">=</span>ltu.name, text<span class="op">=</span>out)])]</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>crun <span class="op">=</span> astream(cmsgs, model<span class="op">=</span><span class="st">'claude-sonnet-5'</span>, tools<span class="op">=</span>[flux_meter])</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>cevs <span class="op">=</span> [m <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> crun]</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>test_eq([m.role <span class="cf">for</span> m <span class="kw">in</span> crun.messages], [<span class="st">'assistant'</span>])</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>crun.result[<span class="st">'result'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>'flux: 41.7 gauss'</code></pre>
+</div>
+</div>
+<p>You can interrupt Claude during generation. This example sends <code>interrupt</code> after twenty streaming events and continues reading to the end. Claude reports <code>is_error=True</code> and <code>subtype='error_during_execution'</code> in the stored result. Those fields alone do not distinguish interruption from other execution failures.</p>
+<p>FastClaude cannot cancel work in your external tool loop. Your application must cancel its own tool execution.</p>
+<div id="fb40a30e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>irun <span class="op">=</span> astream([Msg(<span class="st">'user'</span>, [Text(<span class="st">'Write a 2000 word essay on the history of magnetometry. Do not stop early.'</span>)])])</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> irun:</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> m.get(<span class="st">'type'</span>)<span class="op">==</span><span class="st">'stream_event'</span> <span class="kw">and</span> (n <span class="op">:=</span> n<span class="op">+</span><span class="dv">1</span>)<span class="op">==</span><span class="dv">20</span>: asyncio.ensure_future(irun.interrupt())</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>test_eq([m.role <span class="cf">for</span> m <span class="kw">in</span> irun.messages], [<span class="st">'assistant'</span>])</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>{k: irun.result.get(k) <span class="cf">for</span> k <span class="kw">in</span> (<span class="st">'subtype'</span>,<span class="st">'is_error'</span>)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'subtype': 'error_during_execution', 'is_error': True}</code></pre>
+</div>
+</div>
+<p>For the next prompt, include the completed exchange in the history. FastClaude writes the signed thinking and tool exchange into the new transcript. Claude can refer to the earlier measurement without executing the tool again.</p>
+<div id="d543c77e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>qmsgs <span class="op">=</span> cmsgs <span class="op">+</span> crun.messages <span class="op">+</span> [Msg(<span class="st">'user'</span>, [Text(<span class="st">'What unit did the flux_meter report in? One word only.'</span>)])]</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>qrun <span class="op">=</span> astream(qmsgs, model<span class="op">=</span><span class="st">'claude-sonnet-5'</span>, tools<span class="op">=</span>[flux_meter])</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>qevs <span class="op">=</span> [m <span class="cf">async</span> <span class="cf">for</span> m <span class="kw">in</span> qrun]</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>qrun.result[<span class="st">'result'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>'Gauss'</code></pre>
+</div>
+</div>
+</section>
+<section id="cleanup" class="level2">
+<h2 class="anchored" data-anchor-id="cleanup">Cleanup</h2>
+<p>Each run removes its own transcript. The scripted test leaves its temporary working directory and an empty session folder. The following cell removes those folders and the fake executable. It also deletes the session folder for the shared default cache project. Do not run that cleanup while another default run is active.</p>
+<div id="6399cef9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(sess_dir(scratch), ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(sess_dir(work_dir()), ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(fake_cc.parent, ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(scratch, ignore_errors<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/fastclaude");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/fastclaude/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
