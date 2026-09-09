@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.5
+
+### New Features
+
+- Raise FileNotFoundError with a clear message when the claude executable is missing instead of failing during subprocess spawn ([#7](https://github.com/AnswerDotAI/fastclaude/issues/7))
+
+
 ## 0.0.4
 
 ### New Features
