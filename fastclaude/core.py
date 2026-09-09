@@ -140,6 +140,9 @@ async def _spawn(self:ClaudeRun):
     allowed = [MCP_PREFIX+s['name'] for s in schemas] + list(self.native_tools) + list(self.allowed)
     argv = claude_cmd(self.model, resume=sid if recs else None, tools=bool(schemas),
         native_tools=self.native_tools, allowed=allowed, **self.cmd_kwargs)
+    if not shutil.which(argv[0]):
+        await self.aclose()
+        raise FileNotFoundError(f"claude executable not found: {argv[0]}")
     self.proc = await asyncio.create_subprocess_exec(*argv, stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE, limit=2**25, cwd=self.cwd, env=dict(claude_env(), **(self.env or {})))
     self.proto = ClaudeProto(self.proc, tools=self.tools, held=held, server=MCP_SERVER)
