@@ -2,15 +2,21 @@
 
 ## Session layout
 
-Claude Code stores each conversation as JSONL at `~/.claude/projects/<dir>/<session-id>.jsonl`. `<dir>` is the resolved project path with every non-alphanumeric character replaced by `-`, including underscores. On macOS, a project in `/tmp/foo` therefore appears under `-private-tmp-foo`. `sess_dir` and `sess_file` compute these paths. A transcript is named by the conversation's first session id. `claude --resume` and post-compaction restarts can advertise a fresh id in `CLAUDE_CODE_SESSION_ID` while appending records to the original file, so the environment variable may name an id with no file behind it. `cur_sess` finds the project's most recently modified transcript.
+Claude Code keeps conversations at `~/.claude/projects/<dir>/<session-id>.jsonl`. Each line contains one JSON record. The filename uses the conversation's first session id. Resumes and post-compaction restarts continue writing to that file even when `CLAUDE_CODE_SESSION_ID` changes.
 
-Each line is one JSON object. The main fields are `type`, `uuid`, `parentUuid`, `sessionId`, `timestamp`, and `message`. Conversation records are `user` and `assistant`; a tool result is a `user` record containing `tool_result` blocks. The active conversation is the `parentUuid` chain walked back from the last record by `sess_thread`. `load_sess` and `load_recs` read every record, and `rec_txt` extracts each record's readable text.
+`sess_dir` resolves the project path and replaces every non-alphanumeric character with `-`. This includes underscores. On macOS, `/tmp/foo` becomes `-private-tmp-foo`. `sess_file` locates a transcript by session id or unique prefix. `cur_sess` chooses the project's most recently modified transcript. Pass an explicit id when multiple conversations use the same project.
+
+Conversation records have type `user` or `assistant`. Their main fields are `type`, `uuid`, `parentUuid`, `sessionId`, `timestamp`, and `message`. A tool result belongs to a `user` record with `tool_result` content blocks.
+
+`load_sess` and `load_recs` read all records without changing the file. `sess_thread` follows `parentUuid` links backwards from the last eligible record to recover the active conversation. `rec_txt` extracts readable text from a record's message content.
 
 ## Building sessions
 
-Resume does not care who wrote the file: a transcript assembled by hand resumes like any other. `mk_rec` fills one record's envelope, `save_sess` and `append_sess` chain and write records, and `msgs2recs`/`msgs2sess` convert whole Anthropic-style message lists into resumable sessions, deterministically when given a key. `mk_tu`, `mk_tr`, and `tool_turn` build synthetic tool exchanges, and `prefix_tools` qualifies caller tool names the way Claude Code records them.
+You can resume a transcript that you assembled yourself, including synthetic tool exchanges. `mk_rec` creates individual records. `msgs2recs` converts Anthropic-style message lists. `msgs2sess` also writes the transcript and returns its session id. These message-list conversions produce deterministic ids from the messages and a key.
 
-Reading functions do not modify transcripts. `save_sess` and `append_sess` do: read their docs and inspect the target records before calling them; `save_sess` replaces a whole session file. `llmsurgery` builds on this module for finding, searching, curating, converting, and compacting sessions.
+Use `mk_tu` and `mk_tr` for tool-call and tool-result blocks. `tool_turn` builds a complete exchange. `prefix_tools` qualifies caller tool names to match Claude Code's transcript format.
+
+`save_sess` replaces the entire target file and rebuilds its parent chain. `append_sess` links new records after the existing transcript. Inspect the target records and read these functions' documentation before writing. `llmsurgery` uses this module to find, search, curate, convert, and compact sessions.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/session.html.md"""
 
@@ -41,7 +47,7 @@ def sess_dir(
 def cur_sess(
     cwd=None, # Project directory; the current directory if None
 ):
-    "The current conversation's session id: the most recent transcript for the project at `cwd`, else the advertised id"
+    "The newest transcript's session id for `cwd`, or the advertised id if none exists"
     try: return max(sess_dir(cwd).glob('*.jsonl'), key=lambda p: p.stat().st_mtime).stem
     except ValueError: return os.environ.get('CLAUDE_CODE_SESSION_ID')
 

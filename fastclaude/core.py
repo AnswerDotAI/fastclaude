@@ -1,6 +1,12 @@
 """`astream` and `ClaudeRun`: stateless completions through the installed Claude Code
 
-`astream(msgs, ...)` returns a `ClaudeRun`: one stateless completion through the installed `claude`, using its login and subscription. The complete history (as `aidialog.msg_parts.Msg`s) is compiled into a native transcript via `fastclaude.session` under a fresh random session id and resumed. The caller owns the tool loop: tools are schemas, a run whose reply calls one ends at the `tool_use`, and a history ending in a `ToolResult` is continued by deferral: the pending call is marked in the transcript, the known result is held, and Claude collects it on resume via `fastclaude.protocol`. Iteration yields the raw stream-json events; `.messages` accumulates the canonical trace (signatures intact, tool names unqualified) and `.result` the terminal result, so the next request can replay everything. `run.interrupt()` ends a turn natively, and closing the stream reaps the process and removes the transcript. Runs default to an isolated XDG cache work dir, so no real project's sessions or settings are touched; pass `cwd=` for project context, and `native_tools=` to enable built-ins such as `'WebSearch'`.
+`astream(msgs, ...)` creates a `ClaudeRun` for one stateless completion through your installed `claude`. It uses Claude Code's login and subscription. Supply the complete conversation as `aidialog.msg_parts.Msg` objects on every request. FastClaude writes the history as a native transcript with `fastclaude.session` and starts a fresh process to resume it.
+
+Your application executes the tools it supplies. When Claude requests one, the run ends with a `ToolUse`. Execute the tool and append its `ToolResult` to the history for the next request. FastClaude marks the pending call in the transcript. Its `fastclaude.protocol` bridge returns your result when Claude resumes that call.
+
+Iterate the run for raw stream-json events. `run.messages` contains the generated `Msg` trace with thinking signatures intact and your original tool names. `run.result` contains the terminal result. Append the trace to your history for the next request.
+
+Use `run.interrupt()` to end the current turn. Close the run to stop its process and remove its temporary transcript. Runs use a dedicated XDG cache work directory by default. Pass `cwd=` to use a project's context or `native_tools=` to enable Claude Code tools such as `WebSearch`.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/core.html.md"""
 
@@ -27,7 +33,7 @@ MCP_PREFIX = f'mcp__{MCP_SERVER}__'
 SERVER_TOOLS = ('WebSearch','WebFetch')
 
 def work_dir():
-    "The default run directory: an isolated pseudo-project under the XDG cache dir"
+    "Create and return the shared FastClaude work directory under the XDG cache directory"
     p = xdg_cache_home()/'fastclaude'
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -36,7 +42,11 @@ def work_dir():
 def compile_msgs(
     msgs, # Complete history as `Msg`s, ending with a user prompt or with the tool results Claude asked for
 ):
-    "`(history, prompt, deferred)`: wire messages to file, the live turn's content (None for a continuation), and the pending `(tool_use, tool_result)` pair"
+    """Return `(history, prompt, deferred)` for a new run.
+
+    `history` contains wire messages for the transcript. `prompt` is the live turn's content, or None for a continuation.
+    `deferred` is the pending `(tool_use, tool_result)` pair, or None for a live prompt.
+    """
     msgs = listify(msgs)
     if not msgs: raise ValueError('empty message history')
     den = prefix_tools(denorm_msgs(msgs), MCP_PREFIX, skip=SERVER_TOOLS)
@@ -68,7 +78,7 @@ def claude_cmd(
     effort=None, # Thinking effort: 'low', 'medium', or 'high'
     claude_path=None, # Explicit claude executable; found on PATH if None
 ):
-    "argv for one headless stream-json claude run"
+    "Build argv for one headless stream-json Claude Code run"
     c = [str(claude_path or shutil.which('claude') or 'claude'), '--output-format','stream-json',
         '--input-format','stream-json', '--verbose', '--include-partial-messages']
     if model: c += ['--model', model]
@@ -87,20 +97,20 @@ def claude_cmd(
     return c
 
 def claude_env():
-    "A child environment that cannot bill an API key and does not think it is nested"
+    "Copy the environment with an empty `ANTHROPIC_API_KEY` and no `CLAUDECODE`"
     env = dict(os.environ, ANTHROPIC_API_KEY='')
     env.pop('CLAUDECODE', None)
     return env
 
 # %% ../nbs/02_core.ipynb #ad501dc1
 class ClaudeRun:
-    "One stateless completion: a fresh transcript, one claude process, streamed events, a canonical trace"
+    "Manage one Claude Code process for a stateless completion with streamed events and a reusable message trace"
     @delegates(claude_cmd, but=['model','resume','tools','native_tools','allowed'])
     def __init__(self,
         msgs, # Complete history as `Msg`s, ending with a user prompt or the tool results Claude asked for
         model='sonnet', # Model alias or full name
         tools=None, # Tool schemas to advertise, in either `tool_spec` form; the caller executes
-        cwd=None, # Project directory for the run; the isolated `work_dir()` if None
+        cwd=None, # Project directory for the run; the shared `work_dir()` if None
         native_tools=(), # Built-in Claude Code tools to enable, e.g. 'WebSearch'
         allowed=(), # Extra `--allowedTools` entries beyond the advertised schemas
         env=None, # Extra child environment variables, merged over `claude_env()`
@@ -117,13 +127,16 @@ class ClaudeRun:
 
 @delegates(ClaudeRun)
 def astream(msgs, **kwargs):
-    "Start one stateless completion; iterate the returned `ClaudeRun` for its raw events"
+    "Create a `ClaudeRun` for one stateless completion and iterate it for raw events"
     return ClaudeRun(msgs, **kwargs)
 
 # %% ../nbs/02_core.ipynb #e5bc11c4
 @patch
 async def _spawn(self:ClaudeRun):
-    "Compile and file the history, then start Claude resuming it; returns the live turn's content (None for a continuation)"
+    """Write the transcript and start Claude Code.
+
+    Return the live prompt content, or None for a continuation.
+    """
     self.cwd = Path(self.cwd).expanduser() if self.cwd else work_dir()
     hist,prompt,deferred = compile_msgs(self.msgs)
     sid = str(uuid.uuid4())
@@ -150,14 +163,14 @@ async def _spawn(self:ClaudeRun):
 
 # %% ../nbs/02_core.ipynb #8d5f8fe6
 def unqual(nm):
-    "The bare tool name for a possibly `mcp__fastclaude__`-qualified `nm`"
+    "Remove the `mcp__fastclaude__` prefix from `nm` when present"
     return nm[len(MCP_PREFIX):] if nm and nm.startswith(MCP_PREFIX) else nm
 
 def _flat(c): return c if isinstance(c, str) else '\n'.join(b.get('text','') for b in c if b.get('type')=='text')
 
 @patch
 def _track(self:ClaudeRun, m):
-    "Fold one raw event into `.messages` and `.result`"
+    "Update `.messages` or `.result` from one raw event"
     t,c = m.get('type'), nested_idx(m, 'message', 'content')
     if t=='assistant' and isinstance(c, list):
         parts = norm_parts(m['message'])
@@ -173,14 +186,14 @@ def _track(self:ClaudeRun, m):
 # %% ../nbs/02_core.ipynb #ea5dbde9
 @patch
 async def _kick(self:ClaudeRun, prompt):
-    "Handshake, then the live user turn; a continuation sends none"
+    "Complete the handshake and send the live prompt if present"
     await self.proto.initialize()
     if prompt is not None: await self.proto.send(dict(type='user', message=dict(role='user', content=prompt)))
 
 # %% ../nbs/02_core.ipynb #ce7d4c70
 @patch
 async def _run(self:ClaudeRun):
-    "The event stream: spawn, kick off, yield raw events until the terminal result"
+    "Start Claude Code and yield raw events through its terminal result"
     prompt = await self._spawn()
     kick = asyncio.create_task(self._kick(prompt))
     try:
@@ -195,7 +208,7 @@ async def _run(self:ClaudeRun):
 # %% ../nbs/02_core.ipynb #274024f8
 @patch
 async def interrupt(self:ClaudeRun, timeout=30):
-    "Claude's native interrupt: end the current turn; the stream stays open to drain the aborted tail"
+    "Ask Claude Code to end the turn while keeping the stream open for remaining events"
     return await self.proto.interrupt(timeout)
 
 # %% ../nbs/02_core.ipynb #a64794c5
@@ -226,7 +239,10 @@ async def _cleanup(self:ClaudeRun):
 # %% ../nbs/02_core.ipynb #9acc7b5c
 @patch
 async def aclose(self:ClaudeRun):
-    "Close stdin, reap the process, and remove the transcript; idempotent and cancellation-shielded"
+    """Close stdin, stop the process, and remove the transcript.
+
+    Start cleanup once and shield it from cancellation.
+    """
     if self._closed: return
     self._closed = True
     await asyncio.shield(asyncio.create_task(self._cleanup()))

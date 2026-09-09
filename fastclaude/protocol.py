@@ -1,6 +1,8 @@
-"""Claude Code's stream-json wire protocol: NDJSON transport, control routing, and the deferred-tool bridge
+"""Handle Claude Code's stream-json protocol, including NDJSON transport, control requests, and deferred tool results
 
-Speak Claude Code's stream-json wire protocol directly, with no Agent SDK: `read_msgs` frames NDJSON from a piped process, `mk_tools` turns annotated callables or schema dicts into the tool list to advertise, `tool_reply` shapes an already-known tool result for Claude to collect, `mcp_dispatch` implements the MCP-shaped JSON-RPC methods the CLI uses to list tools and fetch that result, and `ClaudeProto` is the per-process peer. It matches `control_response`s to pending requests, runs each incoming `control_request` as its own cancellable task, routes `PreToolUse` hook callbacks (allow while a held result waits, otherwise defer, which ends the turn so the caller can execute), answers `control_cancel_request` by cancelling and staying silent, and yields every other message through untouched. `initialize` and `interrupt` are ordinary control requests. Tools are never executed here: the caller owns the tool loop, and the runner in `fastclaude.core` owns the process itself.
+`fastclaude.protocol` connects Python applications to a running Claude Code process without the Agent SDK. `ClaudeProto` exchanges JSON messages with the process and yields its conversation events. The `ClaudeRun` runner in `fastclaude.core` starts and stops the process.
+
+The application executes the tools it supplies to fastclaude. When Claude requests one of these tools, fastclaude ends the turn before execution. The application runs the tool and supplies its result on the next run. `ClaudeProto` returns that result when Claude resumes the pending call. It never executes the tool itself.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/protocol.html.md"""
 
@@ -19,25 +21,25 @@ from fastcore.funccall import get_schema
 async def read_msgs(
     stream, # An asyncio `StreamReader` of NDJSON, e.g. a claude process's stdout
 ):
-    "Decoded messages from `stream`, one per line; blank lines skip, non-JSON raises, a truncated final fragment drops"
+    "Yield decoded JSON messages from `stream`"
     while line := await stream.readline():
         if not (s := line.strip()): continue
         try: yield json.loads(s)
         except json.JSONDecodeError as e:
             if line.endswith(b'\n'): raise ValueError(f'bad NDJSON line: {s[:200]!r}') from e
-            return  # no newline: a producer killed mid-write; the fragment is unrecoverable
+            return  # Ignore an invalid final fragment without a newline.
 
 # %% ../nbs/01_protocol.ipynb #936b255f
 def tool_spec(
     t, # An annotated callable, or a schema dict with `name`, `description`, `inputSchema`
 ):
-    "The schema dict for one tool; a callable's schema is derived from its signature, and the callable is never executed"
+    "Return a schema dictionary for a function or an existing schema"
     return get_schema(t, pname='inputSchema') if callable(t) else t
 
 def mk_tools(
     tools, # Tools in either `tool_spec` form
 ):
-    "The schema list to advertise for `tools`"
+    "Return the tool definitions as schema dictionaries"
     return [tool_spec(t) for t in listify(tools)]
 
 # %% ../nbs/01_protocol.ipynb #1e3b35d0
@@ -49,7 +51,7 @@ def _mcp_content(block):
 
 # %% ../nbs/01_protocol.ipynb #0736df84
 def tool_reply(content, is_error=False):
-    "An MCP tool return value carrying Anthropic content"
+    "Convert Anthropic content to an MCP tool result"
     if isinstance(content, str): content = [dict(type='text', text=content)]
     return dict(content=[_mcp_content(b) for b in content], isError=is_error)
 
@@ -59,7 +61,7 @@ def jrpc(
     id=None, # Request id; None makes a notification
     **params, # The call's `params`, omitted when empty
 ):
-    "One JSON-RPC message, e.g. what the CLI sends our bridge"
+    "Build a JSON-RPC request or notification"
     r = dict(jsonrpc='2.0', id=id, method=method)
     if id is None: r.pop('id')
     if params: r['params'] = params
@@ -88,20 +90,20 @@ def mcp_dispatch(
 
 # %% ../nbs/01_protocol.ipynb #e51c5e88
 def ctrl_req(rid, **req):
-    "A `control_request` envelope"
+    "Build a `control_request` message"
     return dict(type='control_request', request_id=rid, request=req)
 
 def ctrl_ok(rid, **resp):
-    "A success `control_response` envelope"
+    "Build a successful `control_response` message"
     return dict(type='control_response', response=dict(subtype='success', request_id=rid, response=resp))
 
 def ctrl_err(rid, error):
-    "An error `control_response` envelope"
+    "Build an error `control_response` message"
     return dict(type='control_response', response=dict(subtype='error', request_id=rid, error=str(error)))
 
 # %% ../nbs/01_protocol.ipynb #00be1e4d
 class ClaudeProto:
-    "Control-protocol peer for one claude process: request matching, hook routing, held-result serving, passthrough events"
+    "Exchange control messages and conversation events with one Claude Code process"
     def __init__(self,
         proc, # An asyncio subprocess speaking stream-json on piped stdin/stdout
         tools=None, # Tool schemas to advertise, in either `tool_spec` form
@@ -113,13 +115,13 @@ class ClaudeProto:
         self._lock,self._n,self._pending,self._inflight = asyncio.Lock(),0,{},{}
 
     async def send(self, obj):
-        "Write one JSON message to claude's stdin"
+        "Write one JSON message to Claude Code's standard input"
         async with self._lock:
             self.proc.stdin.write(json.dumps(obj, ensure_ascii=False).encode()+b'\n')
             await self.proc.stdin.drain()
 
     async def send_req(self, req, timeout=60):
-        "Send a control request, await its response by id, and return the inner `response` dict"
+        "Send a control request and return its response dictionary"
         self._n += 1
         rid = f'req_{self._n}_{os.urandom(4).hex()}'
         fut = asyncio.get_running_loop().create_future()
@@ -129,18 +131,18 @@ class ClaudeProto:
         finally: self._pending.pop(rid, None)
 
     async def initialize(self, timeout=120):
-        "The control-protocol handshake, registering the defer hook when tools are advertised"
+        "Start the handshake and register the tool permission hook"
         hooks = dict(PreToolUse=[dict(matcher=f'mcp__{self.server}__.*', hookCallbackIds=['defer'])]) if self.schemas else None
         return await self.send_req(dict(subtype='initialize', hooks=hooks), timeout)
 
     async def interrupt(self, timeout=30):
-        "Claude's native interrupt: end the current turn, keeping the process alive"
+        "Ask Claude Code to end the current turn without stopping the process"
         return await self.send_req(dict(subtype='interrupt'), timeout)
 
 # %% ../nbs/01_protocol.ipynb #2f1ac188
 @patch
 def _resolve(self:ClaudeProto, msg):
-    "Complete the pending request a `control_response` answers"
+    "Resolve the pending request identified by a `control_response`"
     r = msg.get('response') or {}
     if (fut := self._pending.get(r.get('request_id'))) and not fut.done():
         if r.get('subtype')=='error': fut.set_exception(RuntimeError(r.get('error') or 'control request failed'))
@@ -148,20 +150,20 @@ def _resolve(self:ClaudeProto, msg):
 
 @patch
 def _route(self:ClaudeProto, req):
-    "The `PreToolUse` decision: allow while a result is held, otherwise defer"
+    "Allow tool use when `held` contains a result, otherwise defer"
     return dict(hookSpecificOutput=dict(hookEventName='PreToolUse', permissionDecision='allow' if self.held else 'defer'))
 
 # %% ../nbs/01_protocol.ipynb #a0a93088
 @patch
 def _mcp(self:ClaudeProto, msg):
-    "Answer one bridged JSON-RPC message; serving the held result also clears it"
+    "Answer an MCP request and clear `held` after a tool call"
     resp = mcp_dispatch(msg, self.schemas, self.held, self.server)
     if msg.get('method')=='tools/call': self.held = None
     return dict(mcp_response=resp or dict(jsonrpc='2.0', result={}))
 
 @patch
 async def _handle(self:ClaudeProto, rid, req):
-    "Answer one CLI-originated control request; cancelled handlers answer nothing"
+    "Answer a control request from Claude Code"
     try:
         st = req.get('subtype')
         if st=='mcp_message': resp = self._mcp(req.get('message') or {})
@@ -174,7 +176,7 @@ async def _handle(self:ClaudeProto, rid, req):
 # %% ../nbs/01_protocol.ipynb #57c71845
 @patch
 async def events(self:ClaudeProto):
-    "Non-control messages from claude, with control traffic routed internally"
+    "Handle control messages and yield other events from Claude Code"
     try:
         async for m in read_msgs(self.proc.stdout):
             t = m.get('type')
@@ -188,6 +190,7 @@ async def events(self:ClaudeProto):
                 if task := self._inflight.pop(m.get('request_id'), None): task.cancel()
             else: yield m
     finally: await self.aclose()
+
 
 
 # %% ../nbs/01_protocol.ipynb #ec8d05d9

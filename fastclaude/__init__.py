@@ -3,7 +3,7 @@
 Modules:
 
 - `fastclaude.core`: `astream` and `ClaudeRun`: stateless completions through the installed Claude Code
-- `fastclaude.protocol`: Claude Code's stream-json wire protocol: NDJSON transport, control routing, and the deferred-tool bridge
+- `fastclaude.protocol`: Handle Claude Code's stream-json protocol, including NDJSON transport, control requests, and deferred tool results
 - `fastclaude.session`: Read, write, and build native Claude Code session transcripts"""
 
 __version__ = "0.0.6"
