@@ -18,9 +18,11 @@ This document records the design agreed before implementation. The initial packa
 
 **Progress (2026-09-03):** the paused MCP flow is replaced by the deferred continuation again, restored from 0.0.2 with less machinery. Serving hosts run many users behind several workers, and a paused process is state that cannot move between workers, survive a restart, or be released without a cancel route; the deferral makes every request stateless, at the cost of one process spawn per tool round (tokens are the same either way, since the CLI re-sends the transcript on every model call). Simplifications over 0.0.2: `ClaudeProto` holds one `held` reply rather than a keyed store, since a resumed process re-invokes exactly one recorded call, and serving it clears it; the hook matcher is the server prefix; `aclose` is a plain reap (close stdin, wait, terminate, kill, remove the transcript) with no interrupt-and-drain, since a closed run's trace is never read; `ClaudeRun._run` is the one cleanup owner. `ToolBroker`, `resume`, `paused`, and the batch tracking are deleted. fastllm-claude-code drops its run registry, timers, `claude_cancel`, and `response_ttl`, and fastllm drops `response_id_reusable`/`provider_response_reusable`, which existed only for the paused handle. Verified live on the installed CLI with haiku and sonnet: initial turn ends at the `tool_use`, the forged continuation is collected, and the exchange replays under a new prompt.
 
+**Progress (2026-09-16):** `prompt_cache_key` retains Claude's native account-context reminder and its original position in a small XDG cache file. A fingerprint checks that the supplied history still contains the same prefix. Each request still supplies complete editable history and starts a fresh process. The cache stores no assistant replies or live processes. `fastclaude` now owns the `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` environment default; the other reminders remain uncached after the breakpoint.
+
 The important decisions are:
 
-- Each request is independent: one transcript, one process, no state between requests.
+- Each request supplies complete history and uses one temporary transcript and one process. An optional `prompt_cache_key` preserves account-context reminders between requests.
 - Callers pass complete history as `aidialog.msg_parts.Msg` objects, so they can edit, hide, rewind, or replace any earlier message.
 - History is compiled into a real Claude Code JSONL transcript and resumed. It is not rendered into XML or flattened into a prompt.
 - The input history ends in a genuine user prompt or in the tool results Claude asked for; both start a fresh process from the transcript.
@@ -226,7 +228,7 @@ Important details:
 - Piped stdin/stdout make Claude headless, so the Agent SDK currently omits `--print`. This behavior needs an integration test against the supported CLI version range.
 - Do not use `--no-session-persistence`: the invocation must resume the transcript we just wrote.
 
-The default interaction with user/project settings should initially match `fastllm-claude-code`. Whether to suppress more Claude customizations is a later explicit policy decision; authentication must continue to use the real config.
+Filesystem settings are disabled by default with `setting_sources=()`. Callers supply their own context. Pass `setting_sources=['project']` to load project settings or `None` to use Claude's normal settings sources. Authentication continues to use the real login.
 
 ## Native transcript codec
 

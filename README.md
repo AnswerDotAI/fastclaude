@@ -14,7 +14,7 @@ Each request starts from complete history:
 - advertises tools as schemas and ends the turn at a `tool_use`, so the caller owns the tool loop
 - continues a history ending in `ToolResult`s by deferral: the pending call is marked in the transcript and its known result served on resume
 - streams Claude output and supports native interruption
-- remains stateless: each request is one process, and nothing is held between requests
+- starts a fresh process for each request; an optional `prompt_cache_key` retains account-context reminders for prompt caching
 
 See [DEV.md](DEV.md) for the design record and protocol findings.
 

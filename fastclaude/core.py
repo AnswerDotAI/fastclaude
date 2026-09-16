@@ -6,7 +6,9 @@ Your application executes the tools it supplies. When Claude requests one, the r
 
 Iterate the run for raw stream-json events. `run.messages` contains the generated `Msg` trace with thinking signatures intact and your original tool names. `run.result` contains the terminal result. Append the trace to your history for the next request.
 
-Use `run.interrupt()` to end the current turn. Close the run to stop its process and remove its temporary transcript. Runs use a dedicated XDG cache work directory by default. Pass `cwd=` to use a project's context or `native_tools=` to enable Claude Code tools such as `WebSearch`.
+Use `run.interrupt()` to end the current turn. Close the run to stop its process and remove its temporary transcript. Runs use a dedicated XDG cache work directory by default. Pass `cwd=` to choose a working directory or `native_tools=` to enable Claude Code tools such as `WebSearch`.
+
+Reuse `prompt_cache_key` across turns to preserve Claude's account-context reminder in the replayed history. FastClaude stores that native record and a prefix fingerprint under its XDG cache directory. The key does not select a running process or replace the supplied history. Missing cache files and edited prefixes start with fresh context.
 
 Docs: https://AnswerDotAI.github.io/fastclaude/core.html.md"""
 
@@ -60,6 +62,37 @@ def compile_msgs(
         return hist, None, (pend[-1], lc[-1])
     raise ValueError('history must end with a user prompt or tool results')
 
+# %% ../nbs/02_core.ipynb #33a30a50
+def _context_prefix(recs):
+    msgs = []
+    for r in recs:
+        m = r['message']
+        content = m['content']
+        if m['role']=='user' and not isinstance(content, str) and all(b.get('type')=='text' for b in content):
+            content = ''.join(b['text'] for b in content)
+        msgs.append(dict(role=m['role'], content=content))
+    return stable_uuid(canon(msgs))
+
+
+def _restore_context(path, recs):
+    if not path.exists(): return
+    context = path.read_json()
+    n = context['n']
+    if n <= len(recs) and _context_prefix(recs[:n])==context['prefix']: recs.insert(n, context['record'])
+
+
+def _save_context(path, recs):
+    hist = []
+    for r in recs:
+        if r.get('type') in ('user','assistant'): hist.append(r)
+        elif r.get('attachment', {}).get('type')=='session_context':
+            context = dict(n=len(hist), prefix=_context_prefix(hist), record=r)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(f'.{uuid.uuid4().hex}.tmp')
+            tmp.write_text(canon(context))
+            tmp.replace(path)
+            return
+
 # %% ../nbs/02_core.ipynb #0c3b7a6a
 def claude_cmd(
     model=None, # Model alias or full name; None uses the user's default
@@ -69,7 +102,7 @@ def claude_cmd(
     native_tools=(), # Built-in Claude Code tools to enable, e.g. 'WebSearch'
     allowed=(), # `--allowedTools` entries, e.g. qualified callable names
     append_system=None, # Text appended to Claude Code's own system prompt, which stays
-    setting_sources=None, # Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)
+    setting_sources=(), # Settings that load, e.g. ['project']; () loads none; None keeps the CLI default (all)
     mcp_config=None, # Extra MCP server entries, e.g. `dict(clikernel=dict(type='stdio', command=...))`
     max_turns=None, # Bound on agent turns; None is unbounded
     max_budget=None, # Max USD for the run; None is unbounded
@@ -98,7 +131,7 @@ def claude_cmd(
 
 def claude_env():
     "Copy the environment with an empty `ANTHROPIC_API_KEY` and no `CLAUDECODE`"
-    env = dict(os.environ, ANTHROPIC_API_KEY='')
+    env = dict(os.environ, ANTHROPIC_API_KEY='', CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS='1')
     env.pop('CLAUDECODE', None)
     return env
 
@@ -114,12 +147,14 @@ class ClaudeRun:
         native_tools=(), # Built-in Claude Code tools to enable, e.g. 'WebSearch'
         allowed=(), # Extra `--allowedTools` entries beyond the advertised schemas
         env=None, # Extra child environment variables, merged over `claude_env()`
+        prompt_cache_key=None, # Stable conversation key for retaining account-context reminders
         **kwargs, # Passed to `claude_cmd`, e.g. `system`, `setting_sources`, `mcp_config`
     ):
-        store_attr('msgs,model,tools,cwd,native_tools,allowed,env')
+        store_attr('msgs,model,tools,cwd,native_tools,allowed,env,prompt_cache_key')
         self.cmd_kwargs = kwargs
         self.messages,self.result,self.proc,self.proto = [],None,None,None
         self._names,self._closed,self._spath,self._deferred = {},False,None,None
+        self._cpath = xdg_cache_home()/'fastclaude'/'contexts'/f'{stable_uuid(prompt_cache_key)}.json' if prompt_cache_key else None
 
     def __aiter__(self):
         if not hasattr(self, '_it'): self._it = self._run()
@@ -141,6 +176,7 @@ async def _spawn(self:ClaudeRun):
     hist,prompt,deferred = compile_msgs(self.msgs)
     sid = str(uuid.uuid4())
     recs = msgs2recs(hist, key=sid, cwd=self.cwd)
+    if self._cpath: _restore_context(self._cpath, recs)
     held = None
     if deferred:
         tu,tr = deferred
@@ -172,6 +208,7 @@ def _flat(c): return c if isinstance(c, str) else '\n'.join(b.get('text','') for
 def _track(self:ClaudeRun, m):
     "Update `.messages` or `.result` from one raw event"
     t,c = m.get('type'), nested_idx(m, 'message', 'content')
+    if t=='system' and m.get('subtype')=='init' and not self._spath: self._spath = sess_file(m['session_id'], self.cwd)
     if t=='assistant' and isinstance(c, list):
         parts = norm_parts(m['message'])
         for p in parts:
@@ -234,7 +271,10 @@ async def _cleanup(self:ClaudeRun):
         with suppress(Exception): p.stdin.close()
         await _reap_process(p)
     if self.proto: await self.proto.aclose()
-    if self._spath: Path(self._spath).unlink(missing_ok=True)
+    if self._spath and self._spath.exists():
+        try:
+            if self._cpath: _save_context(self._cpath, self._spath.read_jsonl())
+        finally: self._spath.unlink()
 
 # %% ../nbs/02_core.ipynb #9acc7b5c
 @patch
