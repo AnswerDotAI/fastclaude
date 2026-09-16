@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.6
+
+### New Features
+
+- Add optional `prompt_cache_key` to retain account-context reminders across runs and default `setting_sources` to none ([#9](https://github.com/AnswerDotAI/fastclaude/issues/9))
+
+
 ## 0.0.5
 
 ### New Features
