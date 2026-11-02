@@ -28,7 +28,7 @@ fastclaude = "fastclaude._modidx:d"
 version = {attr = "fastclaude.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["fastclaude"]
+include = ["fastclaude*"]
 
 [tool.nbdev]
 allowed_metadata_keys = ['solveit']
