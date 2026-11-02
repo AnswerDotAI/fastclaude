@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.7
+
+### Bugs Squashed
+
+- Preserve native Claude Code messages in Msg.raw and expand raw `claude_code` exchanges when compiling history ([#10](https://github.com/AnswerDotAI/fastclaude/issues/10))
+
+
 ## 0.0.6
 
 ### New Features
