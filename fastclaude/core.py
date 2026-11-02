@@ -51,7 +51,8 @@ def compile_msgs(
     """
     msgs = listify(msgs)
     if not msgs: raise ValueError('empty message history')
-    den = prefix_tools(denorm_msgs(msgs), MCP_PREFIX, skip=SERVER_TOOLS)
+    den = [part for m in msgs for part in (m.raw if m.raw_api=='claude_code' else denorm_msgs([m]))]
+    den = prefix_tools(den, MCP_PREFIX, skip=SERVER_TOOLS)
     lc = den[-1]['content']
     if msgs[-1].role=='user' and any(isinstance(p, (Text,Media)) for p in msgs[-1].content): return den[:-1], lc, None
     if den[-1]['role']=='user' and isinstance(lc, list) and lc and all(b.get('type')=='tool_result' for b in lc):
@@ -213,11 +214,11 @@ def _track(self:ClaudeRun, m):
         parts = norm_parts(m['message'])
         for p in parts:
             if isinstance(p, ToolUse): p.name = self._names[p.id] = unqual(p.name)
-        self.messages.append(Msg('assistant', parts))
+        self.messages.append(Msg('assistant', parts, raw=m['message'], raw_api='anthropic'))
     elif t=='user' and isinstance(c, list) and c and all(b.get('type')=='tool_result' for b in c):
         if any(b.get('tool_use_id')==self._deferred for b in c): return
         self.messages.append(Msg('tool', [ToolResult(id=b.get('tool_use_id'), name=self._names.get(b.get('tool_use_id')),
-            text=_flat(b.get('content',''))) for b in c]))
+            text=_flat(b.get('content',''))) for b in c], raw=m['message'], raw_api='anthropic'))
     elif t=='result': self.result = m
 
 # %% ../nbs/02_core.ipynb #ea5dbde9
