@@ -41,6 +41,14 @@ def work_dir():
     return p
 
 # %% ../nbs/02_core.ipynb #7feb4c5d
+def _join_split(msgs):
+    "Join consecutive assistant messages that share an `id`: Claude Code emits one message per content block of a reply"
+    res = []
+    for m in msgs:
+        if res and m['role']=='assistant' and m.get('id') and m.get('id')==res[-1].get('id'): res[-1] = {**res[-1], 'content': res[-1]['content']+m['content']}
+        else: res.append(m)
+    return res
+
 def compile_msgs(
     msgs, # Complete history as `Msg`s, ending with a user prompt or with the tool results Claude asked for
 ):
@@ -52,7 +60,7 @@ def compile_msgs(
     msgs = listify(msgs)
     if not msgs: raise ValueError('empty message history')
     den = [part for m in msgs for part in (m.raw if m.raw_api=='claude_code' else denorm_msgs([m]))]
-    den = prefix_tools(den, MCP_PREFIX, skip=SERVER_TOOLS)
+    den = _join_split(prefix_tools(den, MCP_PREFIX, skip=SERVER_TOOLS))
     lc = den[-1]['content']
     if msgs[-1].role=='user' and any(isinstance(p, (Text,Media)) for p in msgs[-1].content): return den[:-1], lc, None
     if den[-1]['role']=='user' and isinstance(lc, list) and lc and all(b.get('type')=='tool_result' for b in lc):
